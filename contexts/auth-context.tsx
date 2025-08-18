@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
 
 interface User {
   id: string
@@ -24,25 +25,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("inventory-user")
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
-    setIsLoading(false)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = session.user
+        const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
+        setUser(userSession)
+        localStorage.setItem("inventory-user", JSON.stringify(userSession))
+      } else {
+        setUser(null)
+        localStorage.removeItem("inventory-user")
+      }
+      setIsLoading(false)
+    })
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user
+      if (u) {
+        const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
+        setUser(userSession)
+        localStorage.setItem("inventory-user", JSON.stringify(userSession))
+      }
+      setIsLoading(false)
+    })
+    return () => authListener.subscription.unsubscribe()
   }, [])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const users = JSON.parse(localStorage.getItem("inventory-users") || "[]")
-      const user = users.find((u: any) => u.email === email && u.password === password)
-
-      if (user) {
-        const userSession = { id: user.id, email: user.email, name: user.name }
-        setUser(userSession)
-        localStorage.setItem("inventory-user", JSON.stringify(userSession))
-        return true
-      }
-      return false
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) return false
+      const u = data.user
+      if (!u) return false
+      const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
+      setUser(userSession)
+      localStorage.setItem("inventory-user", JSON.stringify(userSession))
+      return true
     } catch (error) {
       console.error("Login error:", error)
       return false
@@ -51,24 +67,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
-      const users = JSON.parse(localStorage.getItem("inventory-users") || "[]")
-
-      // Check if user already exists
-      if (users.find((u: any) => u.email === email)) {
-        return false
-      }
-
-      const newUser = {
-        id: Date.now().toString(),
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        name,
-      }
-
-      users.push(newUser)
-      localStorage.setItem("inventory-users", JSON.stringify(users))
-
-      const userSession = { id: newUser.id, email: newUser.email, name: newUser.name }
+        options: { data: { name } },
+      })
+      if (error) return false
+      const u = data.user
+      if (!u) return false
+      const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
       setUser(userSession)
       localStorage.setItem("inventory-user", JSON.stringify(userSession))
       return true
@@ -78,7 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut()
     setUser(null)
     localStorage.removeItem("inventory-user")
   }

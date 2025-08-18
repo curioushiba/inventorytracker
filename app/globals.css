@@ -1,0 +1,158 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color tokens to match professional inventory app design */
+  --background: oklch(1 0 0); /* #ffffff - Clean white background */
+  --foreground: oklch(0.27 0.015 255.85); /* #374151 - Dark gray text */
+  --card: oklch(0.98 0.013 142.5); /* #f0fdf4 - Soft green backdrop */
+  --card-foreground: oklch(0.27 0.015 255.85); /* #374151 - Text on cards */
+  --popover: oklch(1 0 0); /* #ffffff - Popover background */
+  --popover-foreground: oklch(0.27 0.015 255.85); /* #374151 - Popover text */
+  --primary: oklch(0.45 0.15 142.5); /* #15803d - Professional green primary */
+  --primary-foreground: oklch(1 0 0); /* #ffffff - White text on primary */
+  --secondary: oklch(0.7 0.18 120); /* #84cc16 - Bright green accent */
+  --secondary-foreground: oklch(0.27 0.015 255.85); /* #374151 - Text on secondary */
+  --muted: oklch(0.98 0.013 142.5); /* #f0fdf4 - Muted green background */
+  --muted-foreground: oklch(0.35 0.015 255.85); /* #475569 - Muted text */
+  --accent: oklch(0.7 0.18 120); /* #84cc16 - Accent highlights */
+  --accent-foreground: oklch(0.27 0.015 255.85); /* #374151 - Text on accents */
+  --destructive: oklch(0.55 0.2 35); /* #ea580c - Warning/delete color */
+  --destructive-foreground: oklch(1 0 0); /* #ffffff - Text on destructive */
+  --border: oklch(0.85 0.005 255.85); /* #d1d5db - Light gray borders */
+  --input: oklch(0.98 0.013 142.5); /* #f0fdf4 - Input background */
+  --ring: oklch(0.7 0.18 120); /* #84cc16 - Focus ring */
+  --chart-1: oklch(0.45 0.15 142.5); /* #15803d - Primary chart color */
+  --chart-2: oklch(0.7 0.18 120); /* #84cc16 - Secondary chart color */
+  --chart-3: oklch(0.55 0.2 35); /* #ea580c - Third chart color */
+  --chart-4: oklch(0.6 0.2 45); /* #f97316 - Fourth chart color */
+  --chart-5: oklch(0.25 0.05 220); /* #164e63 - Fifth chart color */
+  --radius: 0.5rem; /* Standard corner rounding */
+  --sidebar: oklch(0.98 0.013 142.5); /* #f0fdf4 - Sidebar background */
+  --sidebar-foreground: oklch(0.27 0.015 255.85); /* #374151 - Sidebar text */
+  --sidebar-primary: oklch(0.45 0.15 142.5); /* #15803d - Sidebar primary */
+  --sidebar-primary-foreground: oklch(1 0 0); /* #ffffff - Sidebar primary text */
+  --sidebar-accent: oklch(0.7 0.18 120); /* #84cc16 - Sidebar accent */
+  --sidebar-accent-foreground: oklch(0.27 0.015 255.85); /* #374151 - Sidebar accent text */
+  --sidebar-border: oklch(0.85 0.005 255.85); /* #d1d5db - Sidebar border */
+  --sidebar-ring: oklch(0.7 0.18 120); /* #84cc16 - Sidebar focus ring */
+  /* Added custom font variables for Space Grotesk, DM Sans, and Inter */
+  --font-heading: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, sans-serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.7 0.18 120);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.7 0.18 120);
+  --accent-foreground: oklch(0.145 0 0);
+  --destructive: oklch(0.55 0.2 35);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.7 0.18 120);
+  --chart-1: oklch(0.7 0.18 120);
+  --chart-2: oklch(0.45 0.15 142.5);
+  --chart-3: oklch(0.55 0.2 35);
+  --chart-4: oklch(0.6 0.2 45);
+  --chart-5: oklch(0.25 0.05 220);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.7 0.18 120);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.7 0.18 120);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Updated font variables to use Inter for Gotham-like appearance */
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  /* Updated heading styles to use Inter with proper font weights for Gotham-like appearance */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  /* Added specific heading weight variations for better hierarchy */
+  h1 {
+    font-weight: 700;
+  }
+
+  h2 {
+    font-weight: 600;
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 500;
+  }
+}

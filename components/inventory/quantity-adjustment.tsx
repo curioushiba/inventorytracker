@@ -25,7 +25,7 @@ export function QuantityAdjustment({ open, onOpenChange }: QuantityAdjustmentPro
     setAdjustmentValue("")
   }
 
-  const handleAdjustment = () => {
+  const handleAdjustment = async () => {
     if (!selectedItem || !adjustmentValue) return
 
     const item = items.find((i) => i.id === selectedItem)
@@ -35,12 +35,16 @@ export function QuantityAdjustment({ open, onOpenChange }: QuantityAdjustmentPro
     if (isNaN(adjustment)) return
 
     const newQuantity = Math.max(0, item.quantity + adjustment)
-    updateItem(selectedItem, { ...item, quantity: newQuantity })
+    const result = await updateItem(selectedItem, { quantity: newQuantity })
 
-    // Reset and close
-    setSelectedItem(null)
-    setAdjustmentValue("")
-    onOpenChange(false)
+    if (result.success) {
+      // Reset and close
+      setSelectedItem(null)
+      setAdjustmentValue("")
+      onOpenChange(false)
+    } else {
+      console.error("Failed to update quantity:", result.error)
+    }
   }
 
   const selectedItemData = items.find((i) => i.id === selectedItem)

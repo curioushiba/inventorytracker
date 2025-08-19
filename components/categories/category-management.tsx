@@ -36,11 +36,11 @@ export function CategoryManagement({ open, onOpenChange }: CategoryManagementPro
 
   const categoryStats = getCategoryStats()
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return
 
-    const success = addCategory(newCategoryName)
-    if (success) {
+    const result = await addCategory(newCategoryName)
+    if (result.success) {
       toast({
         title: "Category Added",
         description: `"${newCategoryName}" has been added to your categories.`,
@@ -49,7 +49,7 @@ export function CategoryManagement({ open, onOpenChange }: CategoryManagementPro
     } else {
       toast({
         title: "Error",
-        description: "Category already exists or invalid name.",
+        description: result.error || "Category already exists or invalid name.",
         variant: "destructive",
       })
     }
@@ -60,11 +60,11 @@ export function CategoryManagement({ open, onOpenChange }: CategoryManagementPro
     setEditCategoryName(category)
   }
 
-  const handleUpdateCategory = () => {
+  const handleUpdateCategory = async () => {
     if (!editingCategory || !editCategoryName.trim()) return
 
-    const success = updateCategory(editingCategory, editCategoryName)
-    if (success) {
+    const result = await updateCategory(editingCategory, editCategoryName)
+    if (result.success) {
       toast({
         title: "Category Updated",
         description: `Category has been updated to "${editCategoryName}".`,
@@ -74,7 +74,7 @@ export function CategoryManagement({ open, onOpenChange }: CategoryManagementPro
     } else {
       toast({
         title: "Error",
-        description: "Category name already exists or invalid.",
+        description: result.error || "Category name already exists or invalid.",
         variant: "destructive",
       })
     }
@@ -85,11 +85,11 @@ export function CategoryManagement({ open, onOpenChange }: CategoryManagementPro
     setDeleteDialogOpen(true)
   }
 
-  const confirmDeleteCategory = () => {
+  const confirmDeleteCategory = async () => {
     if (!deletingCategory) return
 
-    const success = deleteCategory(deletingCategory)
-    if (success) {
+    const result = await deleteCategory(deletingCategory)
+    if (result.success) {
       toast({
         title: "Category Deleted",
         description: `"${deletingCategory}" has been removed.`,
@@ -97,7 +97,7 @@ export function CategoryManagement({ open, onOpenChange }: CategoryManagementPro
     } else {
       toast({
         title: "Cannot Delete Category",
-        description: "This category contains items. Move or delete items first.",
+        description: result.error || "This category contains items. Move or delete items first.",
         variant: "destructive",
       })
     }

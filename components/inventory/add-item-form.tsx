@@ -32,17 +32,17 @@ export function AddItemForm({ open, onOpenChange }: AddItemFormProps) {
     e.preventDefault()
     setIsLoading(true)
 
-    try {
-      addItem({
-        name: formData.name,
-        description: formData.description,
-        quantity: Number.parseInt(formData.quantity),
-        category: formData.category,
-        // Defaults since fields were removed from the form
-        minQuantity: 0,
-        location: "",
-      })
+    const result = await addItem({
+      name: formData.name,
+      description: formData.description,
+      quantity: Number.parseInt(formData.quantity),
+      category: formData.category,
+      // Defaults since fields were removed from the form
+      minQuantity: 0,
+      location: "",
+    })
 
+    if (result.success) {
       toast({
         title: "Item Added",
         description: `${formData.name} has been added to your inventory.`,
@@ -57,15 +57,15 @@ export function AddItemForm({ open, onOpenChange }: AddItemFormProps) {
       })
 
       onOpenChange(false)
-    } catch (error) {
+    } else {
       toast({
         title: "Error",
-        description: "Failed to add item. Please try again.",
+        description: result.error || "Failed to add item. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
+
+    setIsLoading(false)
   }
 
   const handleInputChange = (field: string, value: string) => {

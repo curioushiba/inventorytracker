@@ -33,10 +33,10 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
       return
     }
 
-    const success = await signup(email, password, name)
+    const result = await signup(email, password, name)
 
-    if (!success) {
-      setError("Email already exists or signup failed")
+    if (!result.success) {
+      setError(result.error || "Email already exists or signup failed")
     }
 
     setIsLoading(false)

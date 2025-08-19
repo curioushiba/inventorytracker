@@ -46,29 +46,28 @@ export function EditItemForm({ open, onOpenChange, item }: EditItemFormProps) {
 
     setIsLoading(true)
 
-    try {
-      updateItem(item.id, {
-        name: formData.name,
-        description: formData.description,
-        quantity: Number.parseInt(formData.quantity),
-        category: formData.category,
-      })
+    const result = await updateItem(item.id, {
+      name: formData.name,
+      description: formData.description,
+      quantity: Number.parseInt(formData.quantity),
+      category: formData.category,
+    })
 
+    if (result.success) {
       toast({
         title: "Item Updated",
         description: `${formData.name} has been updated successfully.`,
       })
-
       onOpenChange(false)
-    } catch (error) {
+    } else {
       toast({
         title: "Error",
-        description: "Failed to update item. Please try again.",
+        description: result.error || "Failed to update item. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
+
+    setIsLoading(false)
   }
 
   const handleInputChange = (field: string, value: string) => {

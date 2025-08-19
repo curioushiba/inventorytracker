@@ -3,6 +3,11 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
+// Note: Using any types for Supabase imports due to type resolution issues
+// In production, ensure @supabase/supabase-js types are properly installed
+type SupabaseUser = any
+type Session = any
+type AuthChangeEvent = any
 
 interface User {
   id: string
@@ -12,10 +17,11 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
-  signup: (email: string, password: string, name: string) => Promise<boolean>
-  logout: () => void
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  signup: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>
+  logout: () => Promise<void>
   isLoading: boolean
+  error: string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -23,75 +29,121 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const createUserSession = (supabaseUser: SupabaseUser): User => ({
+    id: supabaseUser.id,
+    email: supabaseUser.email || "",
+    name: (supabaseUser.user_metadata?.name as string) || supabaseUser.email?.split('@')[0] || ""
+  })
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      setError(null)
       if (session?.user) {
-        const u = session.user
-        const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
+        const userSession = createUserSession(session.user)
         setUser(userSession)
-        localStorage.setItem("inventory-user", JSON.stringify(userSession))
       } else {
         setUser(null)
-        localStorage.removeItem("inventory-user")
       }
       setIsLoading(false)
     })
-    supabase.auth.getSession().then(({ data }) => {
-      const u = data.session?.user
-      if (u) {
-        const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data, error }: { data: any; error: any }) => {
+      if (error) {
+        console.error("Error getting session:", error)
+        setError("Failed to get session")
+      } else if (data.session?.user) {
+        const userSession = createUserSession(data.session.user)
         setUser(userSession)
-        localStorage.setItem("inventory-user", JSON.stringify(userSession))
       }
       setIsLoading(false)
     })
+
     return () => authListener.subscription.unsubscribe()
   }, [])
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      setError(null)
+      setIsLoading(true)
+      
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) return false
-      const u = data.user
-      if (!u) return false
-      const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
-      setUser(userSession)
-      localStorage.setItem("inventory-user", JSON.stringify(userSession))
-      return true
+      
+      if (error) {
+        setError(error.message)
+        return { success: false, error: error.message }
+      }
+      
+      if (!data.user) {
+        const errorMsg = "No user data received"
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
+      }
+
+      // User session will be set by the auth state change listener
+      return { success: true }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Login failed"
       console.error("Login error:", error)
-      return false
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+  const signup = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      setError(null)
+      setIsLoading(true)
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { name } },
       })
-      if (error) return false
-      const u = data.user
-      if (!u) return false
-      const userSession = { id: u.id, email: u.email || "", name: (u.user_metadata as any)?.name || "" }
-      setUser(userSession)
-      localStorage.setItem("inventory-user", JSON.stringify(userSession))
-      return true
+      
+      if (error) {
+        setError(error.message)
+        return { success: false, error: error.message }
+      }
+      
+      if (!data.user) {
+        const errorMsg = "No user data received"
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
+      }
+
+      // User session will be set by the auth state change listener
+      return { success: true }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Signup failed"
       console.error("Signup error:", error)
-      return false
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const logout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    localStorage.removeItem("inventory-user")
+  const logout = async (): Promise<void> => {
+    try {
+      setError(null)
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("Logout error:", error)
+        setError(error.message)
+      }
+      // User will be cleared by the auth state change listener
+    } catch (error) {
+      console.error("Logout error:", error)
+      setError(error instanceof Error ? error.message : "Logout failed")
+    }
   }
 
-  return <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, login, signup, logout, isLoading, error }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase"
+import { useAuth } from "@/contexts/auth-context"
 
 export interface InventoryItem {
   id: string
@@ -27,16 +29,18 @@ interface InventoryContextType {
   items: InventoryItem[]
   categories: string[]
   activities: Activity[]
-  addItem: (item: Omit<InventoryItem, "id" | "createdAt" | "lastUpdated">) => void
-  updateItem: (id: string, updates: Partial<InventoryItem>) => void
-  deleteItem: (id: string) => void
-  updateQuantity: (id: string, quantity: number) => void
+  isLoading: boolean
+  error: string | null
+  addItem: (item: Omit<InventoryItem, "id" | "createdAt" | "lastUpdated">) => Promise<{ success: boolean; error?: string }>
+  updateItem: (id: string, updates: Partial<InventoryItem>) => Promise<{ success: boolean; error?: string }>
+  deleteItem: (id: string) => Promise<{ success: boolean; error?: string }>
+  updateQuantity: (id: string, quantity: number) => Promise<{ success: boolean; error?: string }>
   getLowStockItems: () => InventoryItem[]
   getTotalValue: () => number
   getItemsByCategory: (category: string) => InventoryItem[]
-  addCategory: (category: string) => boolean
-  deleteCategory: (category: string) => boolean
-  updateCategory: (oldCategory: string, newCategory: string) => boolean
+  addCategory: (category: string) => Promise<{ success: boolean; error?: string }>
+  deleteCategory: (category: string) => Promise<{ success: boolean; error?: string }>
+  updateCategory: (oldCategory: string, newCategory: string) => Promise<{ success: boolean; error?: string }>
   getCategoryStats: () => Array<{ category: string; count: number; value: number }>
 }
 
@@ -45,14 +49,10 @@ const InventoryContext = createContext<InventoryContextType | undefined>(undefin
 export function InventoryProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<InventoryItem[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
-  const [categories, setCategories] = useState<string[]>([
-    "Electronics",
-    "Office Supplies",
-    "Tools",
-    "Furniture",
-    "Cleaning",
-    "Safety Equipment",
-  ])
+  const [categories, setCategories] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
 
   const addActivity = (action: string, details: string, quantityChange?: number) => {
     const newActivity: Activity = {
@@ -66,128 +66,247 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    const savedItems = localStorage.getItem("inventory-items")
-    const savedCategories = localStorage.getItem("inventory-categories")
-    const savedActivities = localStorage.getItem("inventory-activities")
-
-    if (savedItems) {
-      setItems(JSON.parse(savedItems))
-    } else {
-      // Initialize with sample data
-      const sampleItems: InventoryItem[] = [
-        {
-          id: "1",
-          name: "Wireless Mouse",
-          description: "Ergonomic wireless mouse with USB receiver",
-          quantity: 15,
-          minQuantity: 5,
-          category: "Electronics",
-          location: "Shelf A-1",
-          createdAt: "2024-01-15",
-          lastUpdated: "2024-01-20",
-        },
-        {
-          id: "2",
-          name: "Office Chair",
-          description: "Adjustable height office chair with lumbar support",
-          quantity: 3,
-          minQuantity: 2,
-          category: "Furniture",
-          location: "Storage Room B",
-          createdAt: "2024-01-10",
-          lastUpdated: "2024-01-18",
-        },
-        {
-          id: "3",
-          name: "Printer Paper",
-          description: "A4 white printer paper, 500 sheets per pack",
-          quantity: 1,
-          minQuantity: 5,
-          category: "Office Supplies",
-          location: "Supply Closet",
-          createdAt: "2024-01-12",
-          lastUpdated: "2024-01-22",
-        },
-        {
-          id: "4",
-          name: "Screwdriver Set",
-          description: "Professional 12-piece screwdriver set",
-          quantity: 8,
-          minQuantity: 3,
-          category: "Tools",
-          location: "Tool Cabinet",
-          createdAt: "2024-01-08",
-          lastUpdated: "2024-01-19",
-        },
-      ]
-      setItems(sampleItems)
-      localStorage.setItem("inventory-items", JSON.stringify(sampleItems))
+    if (!user) {
+      setItems([])
+      setCategories([])
+      setActivities([])
+      setError(null)
+      return
     }
 
-    if (savedCategories) {
-      setCategories(JSON.parse(savedCategories))
-    }
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-    if (savedActivities) {
-      setActivities(JSON.parse(savedActivities))
-    }
-  }, [])
+        // Load items
+        const { data: itemRows, error: itemsError } = await supabase
+          .from("items")
+          .select("id,name,description,quantity,min_quantity,category,location,created_at,last_updated")
+          .eq("user_id", user.id)
+          .order("last_updated", { ascending: false })
 
-  const saveItems = (newItems: InventoryItem[]) => {
-    setItems(newItems)
-    localStorage.setItem("inventory-items", JSON.stringify(newItems))
-  }
+        if (itemsError) {
+          throw new Error(`Failed to load items: ${itemsError.message}`)
+        }
 
-  const saveActivities = (newActivities: Activity[]) => {
-    setActivities(newActivities)
-    localStorage.setItem("inventory-activities", JSON.stringify(newActivities))
-  }
+        const mappedItems: InventoryItem[] = (itemRows || []).map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          description: r.description ?? "",
+          quantity: r.quantity ?? 0,
+          minQuantity: r.min_quantity ?? 0,
+          category: r.category ?? "",
+          location: r.location ?? "",
+          createdAt: r.created_at ? new Date(r.created_at).toISOString().split("T")[0] : "",
+          lastUpdated: r.last_updated ? new Date(r.last_updated).toISOString().split("T")[0] : "",
+        }))
+        setItems(mappedItems)
 
-  const addItem = (itemData: Omit<InventoryItem, "id" | "createdAt" | "lastUpdated">) => {
-    const newItem: InventoryItem = {
-      ...itemData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split("T")[0],
-      lastUpdated: new Date().toISOString().split("T")[0],
-    }
-    const newItems = [...items, newItem]
-    saveItems(newItems)
-    addActivity("Item Added", `Added ${itemData.name} (${itemData.quantity} units)`, itemData.quantity)
-  }
+        // Load categories
+        const { data: categoryRows, error: categoriesError } = await supabase
+          .from("categories")
+          .select("name")
+          .eq("user_id", user.id)
+          .order("name")
 
-  const updateItem = (id: string, updates: Partial<InventoryItem>) => {
-    const item = items.find((i) => i.id === id)
-    const newItems = items.map((item) =>
-      item.id === id ? { ...item, ...updates, lastUpdated: new Date().toISOString().split("T")[0] } : item,
-    )
-    saveItems(newItems)
-    if (item) {
-      // Avoid duplicate quantity logs when quantity is updated via updateQuantity()
-      if (updates.quantity === undefined) {
-        addActivity("Item Updated", `Updated ${item.name}`)
-      } else {
-        const delta = updates.quantity - item.quantity
-        addActivity("Item Updated", `Updated ${item.name}`, delta)
+        if (categoriesError) {
+          throw new Error(`Failed to load categories: ${categoriesError.message}`)
+        }
+
+        setCategories((categoryRows || []).map((c: any) => c.name))
+
+        // Load activities
+        const { data: activityRows, error: activitiesError } = await supabase
+          .from("activities")
+          .select("id,action,details,quantity_change,timestamp")
+          .eq("user_id", user.id)
+          .order("timestamp", { ascending: false })
+          .limit(50)
+
+        if (activitiesError) {
+          throw new Error(`Failed to load activities: ${activitiesError.message}`)
+        }
+
+        setActivities(
+          (activityRows || []).map((a: any) => ({
+            id: a.id,
+            action: a.action,
+            details: a.details,
+            timestamp: a.timestamp,
+            quantityChange: a.quantity_change ?? undefined,
+          }))
+        )
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : "Failed to load data"
+        console.error("Error loading inventory data:", error)
+        setError(errorMsg)
+      } finally {
+        setIsLoading(false)
       }
     }
-  }
 
-  const deleteItem = (id: string) => {
-    const item = items.find((i) => i.id === id)
-    const newItems = items.filter((item) => item.id !== id)
-    saveItems(newItems)
-    if (item) {
-      // Record full removal of stock as negative change
-      addActivity("Item Deleted", `Deleted ${item.name}`, -item.quantity)
+    loadData()
+  }, [user])
+
+
+
+  const addItem = async (itemData: Omit<InventoryItem, "id" | "createdAt" | "lastUpdated">): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
+    }
+
+    try {
+      setError(null)
+      const now = new Date().toISOString()
+      const { data, error } = await supabase
+        .from("items")
+        .insert({
+          user_id: user.id,
+          name: itemData.name,
+          description: itemData.description,
+          quantity: itemData.quantity,
+          min_quantity: itemData.minQuantity,
+          category: itemData.category,
+          location: itemData.location,
+          created_at: now,
+          last_updated: now,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to add item: ${error.message}`)
+      }
+
+      if (!data) {
+        throw new Error("No data returned from database")
+      }
+
+      const newItem: InventoryItem = {
+        id: data.id,
+        name: data.name,
+        description: data.description ?? "",
+        quantity: data.quantity ?? 0,
+        minQuantity: data.min_quantity ?? 0,
+        category: data.category ?? "",
+        location: data.location ?? "",
+        createdAt: now.split("T")[0],
+        lastUpdated: now.split("T")[0],
+      }
+
+      setItems(prev => [newItem, ...prev])
+      addActivity("Item Added", `Added ${itemData.name} (${itemData.quantity} units)`, itemData.quantity)
+      
+      return { success: true }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to add item"
+      console.error("Error adding item:", error)
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
     }
   }
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateItem = async (id: string, updates: Partial<InventoryItem>): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
+    }
+
+    const existing = items.find((i) => i.id === id)
+    if (!existing) {
+      return { success: false, error: "Item not found" }
+    }
+
+    try {
+      setError(null)
+      const nowDate = new Date().toISOString().split("T")[0]
+      const nowISO = new Date().toISOString()
+
+      // Update local state optimistically
+      const newItems = items.map((it) => (it.id === id ? { ...it, ...updates, lastUpdated: nowDate } : it))
+      setItems(newItems)
+
+      // Update database
+      const payload: any = { last_updated: nowISO }
+      if (updates.name !== undefined) payload.name = updates.name
+      if (updates.description !== undefined) payload.description = updates.description
+      if (updates.quantity !== undefined) payload.quantity = updates.quantity
+      if (updates.minQuantity !== undefined) payload.min_quantity = updates.minQuantity
+      if (updates.category !== undefined) payload.category = updates.category
+      if (updates.location !== undefined) payload.location = updates.location
+
+      const { error } = await supabase.from("items").update(payload).eq("id", id).eq("user_id", user.id)
+
+      if (error) {
+        // Rollback optimistic update
+        setItems(items)
+        throw new Error(`Failed to update item: ${error.message}`)
+      }
+
+      // Add activity
+      if (updates.quantity !== undefined) {
+        const delta = updates.quantity - existing.quantity
+        addActivity("Item Updated", `Updated ${existing.name}`, delta)
+      } else {
+        addActivity("Item Updated", `Updated ${existing.name}`)
+      }
+
+      return { success: true }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to update item"
+      console.error("Error updating item:", error)
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    }
+  }
+
+  const deleteItem = async (id: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
+    }
+
     const item = items.find((i) => i.id === id)
-    updateItem(id, { quantity })
-    if (item) {
+    if (!item) {
+      return { success: false, error: "Item not found" }
+    }
+
+    try {
+      setError(null)
+      
+      // Update local state optimistically
+      const newItems = items.filter((it) => it.id !== id)
+      setItems(newItems)
+
+      // Delete from database
+      const { error } = await supabase.from("items").delete().eq("id", id).eq("user_id", user.id)
+
+      if (error) {
+        // Rollback optimistic update
+        setItems(items)
+        throw new Error(`Failed to delete item: ${error.message}`)
+      }
+
+      addActivity("Item Deleted", `Deleted ${item.name}`, -item.quantity)
+      return { success: true }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to delete item"
+      console.error("Error deleting item:", error)
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    }
+  }
+
+  const updateQuantity = async (id: string, quantity: number): Promise<{ success: boolean; error?: string }> => {
+    const item = items.find((i) => i.id === id)
+    if (!item) {
+      return { success: false, error: "Item not found" }
+    }
+
+    const result = await updateItem(id, { quantity })
+    if (result.success) {
       addActivity("Quantity Updated", `${item.name}: ${item.quantity} → ${quantity}`, quantity - item.quantity)
     }
+    return result
   }
 
   const getLowStockItems = () => {
@@ -202,44 +321,139 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     return items.filter((item) => item.category === category)
   }
 
-  const addCategory = (category: string): boolean => {
-    const trimmedCategory = category.trim()
-    if (!trimmedCategory || categories.includes(trimmedCategory)) {
-      return false
+  const addCategory = async (category: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
     }
-    const newCategories = [...categories, trimmedCategory]
-    saveCategories(newCategories)
-    return true
+
+    const trimmedCategory = category.trim()
+    if (!trimmedCategory) {
+      return { success: false, error: "Category name cannot be empty" }
+    }
+
+    if (categories.includes(trimmedCategory)) {
+      return { success: false, error: "Category already exists" }
+    }
+
+    try {
+      setError(null)
+      
+      // Update local state optimistically
+      const newCategories = [...categories, trimmedCategory]
+      setCategories(newCategories)
+
+      // Add to database
+      const { error } = await supabase.from("categories").insert({ user_id: user.id, name: trimmedCategory })
+
+      if (error) {
+        // Rollback optimistic update
+        setCategories(categories)
+        throw new Error(`Failed to add category: ${error.message}`)
+      }
+
+      return { success: true }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to add category"
+      console.error("Error adding category:", error)
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    }
   }
 
-  const deleteCategory = (category: string): boolean => {
+  const deleteCategory = async (category: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
+    }
+
     // Check if any items use this category
     const itemsInCategory = getItemsByCategory(category)
     if (itemsInCategory.length > 0) {
-      return false // Cannot delete category with items
+      return { success: false, error: "Cannot delete category that contains items" }
     }
-    const newCategories = categories.filter((cat) => cat !== category)
-    saveCategories(newCategories)
-    return true
+
+    try {
+      setError(null)
+      
+      // Update local state optimistically
+      const newCategories = categories.filter((cat) => cat !== category)
+      setCategories(newCategories)
+
+      // Delete from database
+      const { error } = await supabase.from("categories").delete().eq("user_id", user.id).eq("name", category)
+
+      if (error) {
+        // Rollback optimistic update
+        setCategories(categories)
+        throw new Error(`Failed to delete category: ${error.message}`)
+      }
+
+      return { success: true }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to delete category"
+      console.error("Error deleting category:", error)
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    }
   }
 
-  const updateCategory = (oldCategory: string, newCategory: string): boolean => {
-    const trimmedNewCategory = newCategory.trim()
-    if (!trimmedNewCategory || categories.includes(trimmedNewCategory)) {
-      return false
+  const updateCategory = async (oldCategory: string, newCategory: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      return { success: false, error: "User not authenticated" }
     }
 
-    // Update category in categories array
-    const newCategories = categories.map((cat) => (cat === oldCategory ? trimmedNewCategory : cat))
-    saveCategories(newCategories)
+    const trimmedNewCategory = newCategory.trim()
+    if (!trimmedNewCategory) {
+      return { success: false, error: "Category name cannot be empty" }
+    }
 
-    // Update category in all items that use the old category
-    const newItems = items.map((item) =>
-      item.category === oldCategory ? { ...item, category: trimmedNewCategory } : item,
-    )
-    saveItems(newItems)
+    if (categories.includes(trimmedNewCategory)) {
+      return { success: false, error: "Category already exists" }
+    }
 
-    return true
+    try {
+      setError(null)
+      
+      // Update local state optimistically
+      const newCategories = categories.map((cat) => (cat === oldCategory ? trimmedNewCategory : cat))
+      setCategories(newCategories)
+
+      const newItems = items.map((item) =>
+        item.category === oldCategory ? { ...item, category: trimmedNewCategory } : item
+      )
+      setItems(newItems)
+
+      // Update database
+      const categoryResult = await supabase
+        .from("categories")
+        .update({ name: trimmedNewCategory })
+        .eq("user_id", user.id)
+        .eq("name", oldCategory)
+
+      if (categoryResult.error) {
+        throw new Error(`Failed to update category: ${categoryResult.error.message}`)
+      }
+
+      const itemsResult = await supabase
+        .from("items")
+        .update({ category: trimmedNewCategory, last_updated: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .eq("category", oldCategory)
+
+      if (itemsResult.error) {
+        throw new Error(`Failed to update items: ${itemsResult.error.message}`)
+      }
+
+      return { success: true }
+    } catch (error) {
+      // Rollback optimistic updates
+      setCategories(categories)
+      setItems(items)
+      
+      const errorMsg = error instanceof Error ? error.message : "Failed to update category"
+      console.error("Error updating category:", error)
+      setError(errorMsg)
+      return { success: false, error: errorMsg }
+    }
   }
 
   const getCategoryStats = () => {
@@ -250,23 +464,14 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
-  const saveCategories = (newCategories: string[]) => {
-    setCategories(newCategories)
-    localStorage.setItem("inventory-categories", JSON.stringify(newCategories))
-  }
-
-  useEffect(() => {
-    if (activities.length > 0) {
-      localStorage.setItem("inventory-activities", JSON.stringify(activities))
-    }
-  }, [activities])
-
   return (
     <InventoryContext.Provider
       value={{
         items,
         categories,
         activities,
+        isLoading,
+        error,
         addItem,
         updateItem,
         deleteItem,

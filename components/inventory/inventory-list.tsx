@@ -23,9 +23,13 @@ export function InventoryList() {
 
   const filteredItems = selectedCategory ? getItemsByCategory(selectedCategory) : items
 
-  const handleQuantityChange = (item: InventoryItem, change: number) => {
+  const handleQuantityChange = async (item: InventoryItem, change: number) => {
     const newQuantity = Math.max(0, item.quantity + change)
-    updateQuantity(item.id, newQuantity)
+    const result = await updateQuantity(item.id, newQuantity)
+    
+    if (!result.success) {
+      console.error("Failed to update quantity:", result.error)
+    }
   }
 
   const handleEdit = (item: InventoryItem) => {

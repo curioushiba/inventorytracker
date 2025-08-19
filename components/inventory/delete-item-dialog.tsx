@@ -22,15 +22,24 @@ export function DeleteItemDialog({ open, onOpenChange, item }: DeleteItemDialogP
   const { deleteItem } = useInventory()
   const { toast } = useToast()
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!item) return
 
-    deleteItem(item.id)
-    toast({
-      title: "Item Deleted",
-      description: `${item.name} has been removed from your inventory.`,
-    })
-    onOpenChange(false)
+    const result = await deleteItem(item.id)
+    
+    if (result.success) {
+      toast({
+        title: "Item Deleted",
+        description: `${item.name} has been removed from your inventory.`,
+      })
+      onOpenChange(false)
+    } else {
+      toast({
+        title: "Error",
+        description: result.error || "Failed to delete item. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   if (!item) return null

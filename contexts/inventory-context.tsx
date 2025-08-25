@@ -54,22 +54,46 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
 
-  const addActivity = (action: string, details: string, quantityChange?: number) => {
-    const newActivity: Activity = {
-      id: Date.now().toString(),
-      action,
-      details,
-      timestamp: new Date().toISOString(),
-      quantityChange,
+  const addActivity = async (action: string, details: string, quantityChange?: number) => {
+    if (!user) return
+
+    try {
+      const newActivity: Activity = {
+        id: Date.now().toString(),
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        quantityChange,
+      }
+
+      // Save to database
+      const { error } = await supabase
+        .from("activities")
+        .insert({
+          user_id: user.id,
+          action,
+          details,
+          quantity_change: quantityChange,
+          timestamp: newActivity.timestamp,
+        })
+
+      if (error) {
+        console.error("Failed to save activity to database:", error)
+        return
+      }
+
+      // Update local state
+      setActivities((prev) => [newActivity, ...prev].slice(0, 50)) // Keep only last 50 activities
+    } catch (error) {
+      console.error("Error adding activity:", error)
     }
-    setActivities((prev) => [newActivity, ...prev].slice(0, 50)) // Keep only last 50 activities
   }
 
   useEffect(() => {
     if (!user) {
       setItems([])
       setCategories([])
-      setActivities([])
+      // Don't immediately clear activities - let them persist until new user logs in
       setError(null)
       return
     }
@@ -196,7 +220,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       }
 
       setItems(prev => [newItem, ...prev])
-      addActivity("Item Added", `Added ${itemData.name} (${itemData.quantity} units)`, itemData.quantity)
+      await addActivity("Item Added", `Added ${itemData.name} (${itemData.quantity} units)`, itemData.quantity)
       
       return { success: true }
     } catch (error) {
@@ -246,9 +270,9 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       // Add activity
       if (updates.quantity !== undefined) {
         const delta = updates.quantity - existing.quantity
-        addActivity("Item Updated", `Updated ${existing.name}`, delta)
+        await addActivity("Item Updated", `Updated ${existing.name}`, delta)
       } else {
-        addActivity("Item Updated", `Updated ${existing.name}`)
+        await addActivity("Item Updated", `Updated ${existing.name}`)
       }
 
       return { success: true }
@@ -286,7 +310,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Failed to delete item: ${error.message}`)
       }
 
-      addActivity("Item Deleted", `Deleted ${item.name}`, -item.quantity)
+      await addActivity("Item Deleted", `Deleted ${item.name}`, -item.quantity)
       return { success: true }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Failed to delete item"
@@ -304,7 +328,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
 
     const result = await updateItem(id, { quantity })
     if (result.success) {
-      addActivity("Quantity Updated", `${item.name}: ${item.quantity} → ${quantity}`, quantity - item.quantity)
+      await addActivity("Quantity Updated", `${item.name}: ${item.quantity} → ${quantity}`, quantity - item.quantity)
     }
     return result
   }
@@ -351,6 +375,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Failed to add category: ${error.message}`)
       }
 
+      await addActivity("Category Added", `Added category: ${trimmedCategory}`)
       return { success: true }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Failed to add category"
@@ -387,6 +412,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Failed to delete category: ${error.message}`)
       }
 
+      await addActivity("Category Deleted", `Deleted category: ${category}`)
       return { success: true }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Failed to delete category"
@@ -443,6 +469,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         throw new Error(`Failed to update items: ${itemsResult.error.message}`)
       }
 
+      await addActivity("Category Updated", `Updated category: ${oldCategory} → ${trimmedNewCategory}`)
       return { success: true }
     } catch (error) {
       // Rollback optimistic updates

@@ -5,14 +5,14 @@ import { useInventory } from "@/contexts/inventory-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit2, Package, PlusCircle, TrendingUp, Activity } from "lucide-react"
+import { Plus, Edit2, Package, PlusCircle, TrendingUp, Activity, Loader2 } from "lucide-react"
 import { AddItemForm } from "@/components/inventory/add-item-form"
 import { QuantityAdjustment } from "@/components/inventory/quantity-adjustment"
 import { EditItemForm } from "@/components/inventory/edit-item-form"
 import { CategoryManagement } from "@/components/categories/category-management"
 
 export function InventoryDashboard() {
-  const { items, activities } = useInventory()
+  const { items, activities, isLoading } = useInventory()
   const [showAddForm, setShowAddForm] = useState(false)
   const [showQuantityAdjustment, setShowQuantityAdjustment] = useState(false)
   const [editingItem, setEditingItem] = useState<string | null>(null)
@@ -25,7 +25,7 @@ export function InventoryDashboard() {
       {/* Premium Header Section */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">DASHBOARD</h1>
           <p className="text-muted-foreground">Manage your inventory with precision</p>
         </div>
         <div className="flex items-center space-x-3">
@@ -58,7 +58,9 @@ export function InventoryDashboard() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Items</p>
-                <p className="text-2xl font-bold text-foreground">{items.length}</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : items.length}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -73,7 +75,7 @@ export function InventoryDashboard() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Quantity</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {items.reduce((sum, item) => sum + item.quantity, 0)}
+                  {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : items.reduce((sum, item) => sum + item.quantity, 0)}
                 </p>
               </div>
             </div>
@@ -88,7 +90,9 @@ export function InventoryDashboard() {
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Recent Activity</p>
-                <p className="text-2xl font-bold text-foreground">{activities.length}</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : activities.length}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -105,7 +109,14 @@ export function InventoryDashboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="max-h-96 overflow-y-auto">
-            {items.length === 0 ? (
+            {isLoading ? (
+              <div className="p-12 text-center">
+                <div className="flex items-center justify-center space-x-2 mb-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground">Loading inventory...</span>
+                </div>
+              </div>
+            ) : items.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="bg-gradient-to-br from-muted to-muted/50 p-6 rounded-2xl inline-block mb-4">
                   <Package className="h-16 w-16 text-muted-foreground/50" />
@@ -168,7 +179,14 @@ export function InventoryDashboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="max-h-64 overflow-y-auto">
-            {activities.length === 0 ? (
+            {isLoading ? (
+              <div className="p-8 text-center">
+                <div className="flex items-center justify-center space-x-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground">Loading activities...</span>
+                </div>
+              </div>
+            ) : activities.length === 0 ? (
               <div className="p-8 text-center">
                 <div className="bg-gradient-to-br from-muted to-muted/50 p-4 rounded-xl inline-block mb-3">
                   <Activity className="h-8 w-8 text-muted-foreground/50" />

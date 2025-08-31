@@ -17,7 +17,7 @@ export function RecentItems() {
   }, [items])
 
   // Memoize low stock items to prevent recalculation on every render
-  const lowStockItems = useMemo(() => getLowStockItems(), [items])
+  const lowStockItems = useMemo(() => getLowStockItems(), [getLowStockItems])
 
   return (
     <Card className="bg-card">

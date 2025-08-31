@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="#42a855"/>
+  
+  <!-- Inventory Box Stack -->
+  <g transform="translate(256, 256)">
+    <!-- Back Box -->
+    <rect x="-120" y="-80" width="180" height="140" rx="8" fill="#ffffff" opacity="0.3" transform="translate(30, -30)"/>
+    
+    <!-- Middle Box -->
+    <rect x="-120" y="-80" width="180" height="140" rx="8" fill="#ffffff" opacity="0.5" transform="translate(15, -15)"/>
+    
+    <!-- Front Box -->
+    <rect x="-120" y="-80" width="180" height="140" rx="8" fill="#ffffff"/>
+    
+    <!-- Box Lines -->
+    <line x1="-120" y1="-30" x2="60" y2="-30" stroke="#42a855" stroke-width="3"/>
+    <line x1="-120" y1="20" x2="60" y2="20" stroke="#42a855" stroke-width="3"/>
+    
+    <!-- Check Mark for Tracking -->
+    <circle cx="90" cy="40" r="30" fill="#65d978"/>
+    <path d="M 75 40 L 85 50 L 105 30" stroke="#ffffff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

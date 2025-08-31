@@ -2,17 +2,24 @@
 
 import { useState } from "react"
 import { useInventory } from "@/contexts/inventory-context"
+import { useOffline } from "@/contexts/offline-context"
+import { useIsMobile } from "@/components/ui/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Package, PlusCircle, TrendingUp, Activity, Loader2 } from "lucide-react"
-import { AddItemForm } from "@/components/inventory/add-item-form"
-import { QuantityAdjustment } from "@/components/inventory/quantity-adjustment"
-import { EditItemForm } from "@/components/inventory/edit-item-form"
-import { CategoryManagement } from "@/components/categories/category-management"
+import { 
+  LazyAddItemForm, 
+  LazyQuantityAdjustment, 
+  LazyEditItemForm, 
+  LazyCategoryManagement 
+} from "@/components/lazy-components"
+// import { MobileEnhancedDashboard } from "./mobile-enhanced-dashboard" // Temporarily disabled
 
 export function InventoryDashboard() {
   const { items, activities, isLoading } = useInventory()
+  const { isOffline, syncStatus } = useOffline()
+  const isMobile = useIsMobile()
   const [showAddForm, setShowAddForm] = useState(false)
   const [showQuantityAdjustment, setShowQuantityAdjustment] = useState(false)
   const [editingItem, setEditingItem] = useState<string | null>(null)
@@ -20,13 +27,36 @@ export function InventoryDashboard() {
 
   const itemToEdit = editingItem ? items.find((item) => item.id === editingItem) || null : null
 
+  // Use mobile-enhanced dashboard on mobile devices
+  if (isMobile) {
+    // return <MobileEnhancedDashboard /> // Temporarily disabled
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 pb-20 space-y-8">
       {/* Premium Header Section */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">DASHBOARD</h1>
-          <p className="text-muted-foreground">Manage your inventory with precision</p>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">DASHBOARD</h1>
+            {isOffline && (
+              <Badge variant="secondary" className="bg-orange-100 text-orange-700 border-orange-200">
+                Offline Mode
+              </Badge>
+            )}
+            {syncStatus?.status === 'syncing' && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Syncing...
+              </Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground">
+            {isOffline 
+              ? "Working offline - changes will sync when connected" 
+              : "Manage your inventory with precision"
+            }
+          </p>
         </div>
         <div className="flex items-center space-x-3">
           <Button
@@ -234,11 +264,19 @@ export function InventoryDashboard() {
         <Plus className="h-8 w-8" />
       </Button>
 
-      {/* Modals */}
-      <AddItemForm open={showAddForm} onOpenChange={setShowAddForm} />
-      <QuantityAdjustment open={showQuantityAdjustment} onOpenChange={setShowQuantityAdjustment} />
-      <EditItemForm open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)} item={itemToEdit} />
-      <CategoryManagement open={showCategoryManagement} onOpenChange={setShowCategoryManagement} />
+      {/* Modals - Lazy loaded for better performance */}
+      {showAddForm && (
+        <LazyAddItemForm open={showAddForm} onOpenChange={setShowAddForm} />
+      )}
+      {showQuantityAdjustment && (
+        <LazyQuantityAdjustment open={showQuantityAdjustment} onOpenChange={setShowQuantityAdjustment} />
+      )}
+      {editingItem && (
+        <LazyEditItemForm open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)} item={itemToEdit} />
+      )}
+      {showCategoryManagement && (
+        <LazyCategoryManagement open={showCategoryManagement} onOpenChange={setShowCategoryManagement} />
+      )}
     </div>
   )
 }

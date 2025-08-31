@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Inventory Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #42a855 0%, #65d978 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .offline-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+            background: linear-gradient(135deg, #42a855 0%, #65d978 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .offline-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: white;
+        }
+
+        .offline-badge {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 40px;
+            height: 40px;
+            background: #ff5252;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+        }
+
+        .offline-badge svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .status-info {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+
+        .status-info h3 {
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .status-list {
+            text-align: left;
+            list-style: none;
+        }
+
+        .status-list li {
+            color: #666;
+            font-size: 14px;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-list li svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 12px;
+            fill: #42a855;
+        }
+
+        .retry-button {
+            background: linear-gradient(135deg, #42a855 0%, #65d978 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(66, 168, 85, 0.3);
+        }
+
+        .retry-button:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 640px) {
+            .offline-container {
+                padding: 32px 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <div class="offline-badge">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/>
+                </svg>
+            </div>
+        </div>
+
+        <h1>You're Offline</h1>
+        <p>It looks like you've lost your internet connection. Don't worry, your data is safe and will sync when you're back online.</p>
+
+        <div class="status-info">
+            <h3>What you can still do:</h3>
+            <ul class="status-list">
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    View cached inventory items
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    Access recent activity history
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    Browse previously loaded pages
+                </li>
+            </ul>
+        </div>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            Try Again
+        </button>
+    </div>
+
+    <script>
+        // Periodically check for connection and reload
+        setInterval(() => {
+            fetch('/').then(() => {
+                window.location.reload();
+            }).catch(() => {
+                // Still offline
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

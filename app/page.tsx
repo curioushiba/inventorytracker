@@ -5,7 +5,7 @@ import { AuthProvider, useAuth } from "@/contexts/auth-context"
 import { InventoryProvider } from "@/contexts/inventory-context"
 import { LoginForm } from "@/components/auth/login-form"
 import { SignupForm } from "@/components/auth/signup-form"
-import { InventoryDashboard } from "@/components/dashboard/inventory-dashboard"
+import { LazyInventoryDashboard } from "@/components/lazy-components"
 import { Button } from "@/components/ui/button"
 import { Package, LogOut, Sparkles } from "lucide-react"
 
@@ -68,7 +68,7 @@ function MainApp() {
         
         {/* Main content with enhanced spacing */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <InventoryDashboard />
+          <LazyInventoryDashboard />
         </main>
       </div>
     </InventoryProvider>

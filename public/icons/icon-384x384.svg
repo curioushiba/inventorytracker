@@ -1,0 +1,27 @@
+
+<svg width="384" height="384" viewBox="0 0 384 384" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="384" height="384" fill="#42a855"/>
+  
+  <!-- White box icon -->
+  <g transform="translate(96, 96)">
+    <!-- Main box -->
+    <rect x="0" y="0" width="192" height="153.60000000000002" fill="white" rx="7.68"/>
+    
+    <!-- Box lid -->
+    <rect x="0" y="0" width="192" height="19.200000000000003" fill="rgba(0,0,0,0.1)"/>
+    
+    <!-- Lines on box -->
+    <rect x="38.400000000000006" y="48" width="115.19999999999999" height="5.76" fill="#42a855"/>
+    <rect x="38.400000000000006" y="76.80000000000001" width="115.19999999999999" height="5.76" fill="#42a855"/>
+    <rect x="38.400000000000006" y="105.60000000000001" width="76.80000000000001" height="5.76" fill="#42a855"/>
+  </g>
+  
+  <!-- "IT" text for Inventory Tracker -->
+  <text x="192" y="288" 
+        font-family="Arial, sans-serif" 
+        font-size="57.599999999999994" 
+        font-weight="bold" 
+        fill="white" 
+        text-anchor="middle">IT</text>
+</svg>

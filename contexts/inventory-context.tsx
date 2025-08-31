@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/contexts/auth-context"
+import { useOffline } from "@/contexts/offline-context"
 
 export interface InventoryItem {
   id: string
@@ -53,6 +54,18 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
+  const { 
+    isOffline, 
+    isSupported, 
+    cachedItems, 
+    cachedCategories, 
+    getCachedItems, 
+    getCachedCategories,
+    saveOfflineItem,
+    deleteOfflineItem,
+    saveOfflineCategory,
+    syncNow 
+  } = useOffline()
 
   const addActivity = async (action: string, details: string, quantityChange?: number) => {
     if (!user) return
@@ -103,64 +116,99 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true)
         setError(null)
 
-        // Load items
-        const { data: itemRows, error: itemsError } = await supabase
-          .from("items")
-          .select("id,name,description,quantity,min_quantity,category,location,created_at,last_updated")
-          .eq("user_id", user.id)
-          .order("last_updated", { ascending: false })
-
-        if (itemsError) {
-          throw new Error(`Failed to load items: ${itemsError.message}`)
+        // Offline-first approach: Load cached data immediately
+        if (isSupported) {
+          const cachedItemsData = await getCachedItems()
+          const cachedCategoriesData = await getCachedCategories()
+          
+          if (cachedItemsData.length > 0 || cachedCategoriesData.length > 0) {
+            // Map cached items to InventoryItem format
+            const mappedItems: InventoryItem[] = cachedItemsData.map((item: any) => ({
+              id: item.id,
+              name: item.name,
+              description: item.notes || "",
+              quantity: item.quantity ?? 0,
+              minQuantity: item.min_quantity ?? 0,
+              category: item.category ?? "",
+              location: item.location ?? "",
+              createdAt: item.created_at ? new Date(item.created_at).toISOString().split("T")[0] : "",
+              lastUpdated: item.last_updated ? new Date(item.last_updated).toISOString().split("T")[0] : "",
+            }))
+            setItems(mappedItems)
+            
+            // Map cached categories 
+            setCategories(cachedCategoriesData.map((cat: any) => cat.name))
+            
+            console.log("Loaded data from offline cache")
+          }
         }
 
-        const mappedItems: InventoryItem[] = (itemRows || []).map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          description: r.description ?? "",
-          quantity: r.quantity ?? 0,
-          minQuantity: r.min_quantity ?? 0,
-          category: r.category ?? "",
-          location: r.location ?? "",
-          createdAt: r.created_at ? new Date(r.created_at).toISOString().split("T")[0] : "",
-          lastUpdated: r.last_updated ? new Date(r.last_updated).toISOString().split("T")[0] : "",
-        }))
-        setItems(mappedItems)
+        // If online, fetch fresh data from Supabase and sync
+        if (!isOffline) {
+          // Load items
+          const { data: itemRows, error: itemsError } = await supabase
+            .from("items")
+            .select("id,name,description,quantity,min_quantity,category,location,created_at,last_updated")
+            .eq("user_id", user.id)
+            .order("last_updated", { ascending: false })
 
-        // Load categories
-        const { data: categoryRows, error: categoriesError } = await supabase
-          .from("categories")
-          .select("name")
-          .eq("user_id", user.id)
-          .order("name")
+          if (itemsError) {
+            throw new Error(`Failed to load items: ${itemsError.message}`)
+          }
 
-        if (categoriesError) {
-          throw new Error(`Failed to load categories: ${categoriesError.message}`)
-        }
-
-        setCategories((categoryRows || []).map((c: any) => c.name))
-
-        // Load activities
-        const { data: activityRows, error: activitiesError } = await supabase
-          .from("activities")
-          .select("id,action,details,quantity_change,timestamp")
-          .eq("user_id", user.id)
-          .order("timestamp", { ascending: false })
-          .limit(50)
-
-        if (activitiesError) {
-          throw new Error(`Failed to load activities: ${activitiesError.message}`)
-        }
-
-        setActivities(
-          (activityRows || []).map((a: any) => ({
-            id: a.id,
-            action: a.action,
-            details: a.details,
-            timestamp: a.timestamp,
-            quantityChange: a.quantity_change ?? undefined,
+          const mappedItems: InventoryItem[] = (itemRows || []).map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description ?? "",
+            quantity: r.quantity ?? 0,
+            minQuantity: r.min_quantity ?? 0,
+            category: r.category ?? "",
+            location: r.location ?? "",
+            createdAt: r.created_at ? new Date(r.created_at).toISOString().split("T")[0] : "",
+            lastUpdated: r.last_updated ? new Date(r.last_updated).toISOString().split("T")[0] : "",
           }))
-        )
+          setItems(mappedItems)
+
+          // Load categories
+          const { data: categoryRows, error: categoriesError } = await supabase
+            .from("categories")
+            .select("name")
+            .eq("user_id", user.id)
+            .order("name")
+
+          if (categoriesError) {
+            throw new Error(`Failed to load categories: ${categoriesError.message}`)
+          }
+
+          setCategories((categoryRows || []).map((c: any) => c.name))
+
+          // Load activities
+          const { data: activityRows, error: activitiesError } = await supabase
+            .from("activities")
+            .select("id,action,details,quantity_change,timestamp")
+            .eq("user_id", user.id)
+            .order("timestamp", { ascending: false })
+            .limit(50)
+
+          if (activitiesError) {
+            throw new Error(`Failed to load activities: ${activitiesError.message}`)
+          }
+
+          setActivities(
+            (activityRows || []).map((a: any) => ({
+              id: a.id,
+              action: a.action,
+              details: a.details,
+              timestamp: a.timestamp,
+              quantityChange: a.quantity_change ?? undefined,
+            }))
+          )
+
+          // Trigger sync to update offline cache
+          if (isSupported) {
+            await syncNow()
+          }
+        }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : "Failed to load data"
         console.error("Error loading inventory data:", error)
@@ -183,44 +231,95 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null)
       const now = new Date().toISOString()
-      const { data, error } = await supabase
-        .from("items")
-        .insert({
-          user_id: user.id,
-          name: itemData.name,
-          description: itemData.description,
-          quantity: itemData.quantity,
-          min_quantity: itemData.minQuantity,
-          category: itemData.category,
-          location: itemData.location,
-          created_at: now,
-          last_updated: now,
-        })
-        .select()
-        .single()
-
-      if (error) {
-        throw new Error(`Failed to add item: ${error.message}`)
-      }
-
-      if (!data) {
-        throw new Error("No data returned from database")
-      }
-
+      const newItemId = `temp_${Date.now()}_${Math.random()}`
+      
       const newItem: InventoryItem = {
-        id: data.id,
-        name: data.name,
-        description: data.description ?? "",
-        quantity: data.quantity ?? 0,
-        minQuantity: data.min_quantity ?? 0,
-        category: data.category ?? "",
-        location: data.location ?? "",
+        id: newItemId,
+        name: itemData.name,
+        description: itemData.description,
+        quantity: itemData.quantity,
+        minQuantity: itemData.minQuantity,
+        category: itemData.category,
+        location: itemData.location,
         createdAt: now.split("T")[0],
         lastUpdated: now.split("T")[0],
       }
 
+      // Optimistic update - add to UI immediately
       setItems(prev => [newItem, ...prev])
       await addActivity("Item Added", `Added ${itemData.name} (${itemData.quantity} units)`, itemData.quantity)
+
+      // If online, sync to Supabase
+      if (!isOffline) {
+        const { data, error } = await supabase
+          .from("items")
+          .insert({
+            user_id: user.id,
+            name: itemData.name,
+            description: itemData.description,
+            quantity: itemData.quantity,
+            min_quantity: itemData.minQuantity,
+            category: itemData.category,
+            location: itemData.location,
+            created_at: now,
+            last_updated: now,
+          })
+          .select()
+          .single()
+
+        if (error) {
+          // Rollback optimistic update
+          setItems(prev => prev.filter(item => item.id !== newItemId))
+          throw new Error(`Failed to add item: ${error.message}`)
+        }
+
+        if (data) {
+          // Update item with real ID from database
+          const realItem: InventoryItem = {
+            ...newItem,
+            id: data.id,
+          }
+          setItems(prev => prev.map(item => 
+            item.id === newItemId ? realItem : item
+          ))
+
+          // Save to offline cache for future offline access
+          if (isSupported) {
+            await saveOfflineItem({
+              id: data.id,
+              user_id: user.id,
+              name: data.name,
+              quantity: data.quantity,
+              min_quantity: data.min_quantity,
+              category: data.category,
+              price: 0,
+              unit: 'units',
+              location: data.location,
+              notes: data.description,
+              last_updated: data.last_updated,
+              created_at: data.created_at,
+            })
+          }
+        }
+      } else {
+        // If offline, save to offline cache
+        if (isSupported) {
+          await saveOfflineItem({
+            id: newItemId,
+            user_id: user.id,
+            name: itemData.name,
+            quantity: itemData.quantity,
+            min_quantity: itemData.minQuantity,
+            category: itemData.category,
+            price: 0,
+            unit: 'units',
+            location: itemData.location || '',
+            notes: itemData.description,
+            last_updated: now,
+            created_at: now,
+          })
+        }
+      }
       
       return { success: true }
     } catch (error) {
@@ -300,17 +399,24 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       // Update local state optimistically
       const newItems = items.filter((it) => it.id !== id)
       setItems(newItems)
+      await addActivity("Item Deleted", `Deleted ${item.name}`, -item.quantity)
 
-      // Delete from database
-      const { error } = await supabase.from("items").delete().eq("id", id).eq("user_id", user.id)
+      // If online, delete from Supabase
+      if (!isOffline) {
+        const { error } = await supabase.from("items").delete().eq("id", id).eq("user_id", user.id)
 
-      if (error) {
-        // Rollback optimistic update
-        setItems(items)
-        throw new Error(`Failed to delete item: ${error.message}`)
+        if (error) {
+          // Rollback optimistic update
+          setItems(items)
+          throw new Error(`Failed to delete item: ${error.message}`)
+        }
       }
 
-      await addActivity("Item Deleted", `Deleted ${item.name}`, -item.quantity)
+      // Remove from offline cache
+      if (isSupported) {
+        await deleteOfflineItem(id)
+      }
+
       return { success: true }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Failed to delete item"

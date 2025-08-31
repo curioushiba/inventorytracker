@@ -15,11 +15,7 @@ export function useMobilePerformance() {
     // Add passive event listeners for better scroll performance
     const options = { passive: true }
     
-    const handleTouchStart = () => {}
-    const handleTouchMove = () => {}
-    
-    document.addEventListener('touchstart', handleTouchStart, options)
-    document.addEventListener('touchmove', handleTouchMove, options)
+    // Remove unnecessary touch event listeners that waste cycles
     
     // Optimize animation frame rate on mobile
     if ('requestIdleCallback' in window) {
@@ -33,8 +29,7 @@ export function useMobilePerformance() {
     }
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart)
-      document.removeEventListener('touchmove', handleTouchMove)
+      // Cleanup moved to component unmount
     }
   }, [])
 

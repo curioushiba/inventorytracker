@@ -7,6 +7,7 @@ const pwaConfig = withPWA({
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
   buildExcludes: [/middleware-manifest\.json$/],
+  sw: process.env.NODE_ENV === 'production' ? 'sw-custom.js' : 'sw-core.js',
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
@@ -82,6 +83,9 @@ const nextConfig = {
   },
   // Bundle analysis and optimization
   experimental: {
+    optimizeCss: true,
+    inlineCss: true,
+    cssChunking: 'strict',
     optimizePackageImports: [
       '@radix-ui/react-accordion',
       '@radix-ui/react-alert-dialog',

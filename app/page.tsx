@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useMobilePerformance } from "@/hooks/use-performance-optimizations"
 import { AuthProvider, useAuth } from "@/contexts/auth-context"
 import { InventoryProvider } from "@/contexts/inventory-context"
 import { LoginForm } from "@/components/auth/login-form"
@@ -33,6 +34,7 @@ function AuthPage() {
 
 function MainApp() {
   const { user, logout } = useAuth()
+  useMobilePerformance() // Apply mobile optimizations
 
   return (
     <InventoryProvider>

@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Edit2, Package, PlusCircle, TrendingUp, Activity, Loader2 } from "lucide-react"
 import { 
   LazyAddItemForm, 
-  LazyQuantityAdjustment, 
   LazyEditItemForm, 
   LazyCategoryManagement 
 } from "@/components/lazy-components"
+import { QuickAdjustmentModal } from "@/components/inventory/quick-adjustment-modal"
 // import { MobileEnhancedDashboard } from "./mobile-enhanced-dashboard" // Temporarily disabled
 
 export function InventoryDashboard() {
@@ -260,13 +260,14 @@ export function InventoryDashboard() {
         </CardContent>
       </Card>
 
-      {/* Enhanced Floating Action Button */}
+      {/* Enhanced Mobile-Optimized Floating Action Button */}
       <Button
         onClick={() => setShowQuantityAdjustment(true)}
-        className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-premium-xl hover:shadow-premium-xl hover:scale-105 transition-all duration-200 bg-gradient-to-br from-primary to-secondary"
+        className="fixed bottom-6 right-6 h-14 w-14 md:h-16 md:w-16 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-transform duration-100 bg-primary z-50 touch-manipulation"
         size="icon"
+        aria-label="Quick adjust inventory"
       >
-        <Plus className="h-8 w-8" />
+        <Plus className="h-6 w-6 md:h-8 md:w-8 text-primary-foreground" />
       </Button>
 
       {/* Modals - Lazy loaded for better performance */}
@@ -274,7 +275,7 @@ export function InventoryDashboard() {
         <LazyAddItemForm open={showAddForm} onOpenChange={setShowAddForm} />
       )}
       {showQuantityAdjustment && (
-        <LazyQuantityAdjustment open={showQuantityAdjustment} onOpenChange={setShowQuantityAdjustment} />
+        <QuickAdjustmentModal open={showQuantityAdjustment} onOpenChange={setShowQuantityAdjustment} />
       )}
       {editingItem && (
         <LazyEditItemForm open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)} item={itemToEdit} />

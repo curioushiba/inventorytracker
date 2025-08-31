@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useInventory } from "@/contexts/inventory-context"
 import { useOffline } from "@/contexts/offline-context"
-import { useIsMobile } from "@/components/ui/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"

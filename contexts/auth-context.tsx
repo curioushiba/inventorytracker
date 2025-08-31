@@ -1,13 +1,9 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
-// Note: Using any types for Supabase imports due to type resolution issues
-// In production, ensure @supabase/supabase-js types are properly installed
-type SupabaseUser = any
-type Session = any
-type AuthChangeEvent = any
+import type { User as SupabaseUser, Session, AuthChangeEvent } from "@supabase/supabase-js"
 
 interface User {
   id: string
@@ -90,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setError(null)
       setIsLoading(true)
@@ -118,9 +114,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const signup = async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
+  const signup = useCallback(async (email: string, password: string, name: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setError(null)
       setIsLoading(true)
@@ -152,9 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const logout = async (): Promise<void> => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
       setError(null)
       const { error } = await supabase.auth.signOut()
@@ -167,9 +163,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout error:", error)
       setError(error instanceof Error ? error.message : "Logout failed")
     }
-  }
+  }, [])
 
-  return <AuthContext.Provider value={{ user, login, signup, logout, isLoading, error }}>{children}</AuthContext.Provider>
+  const contextValue = useMemo(() => ({
+    user,
+    login,
+    signup,
+    logout,
+    isLoading,
+    error
+  }), [user, login, signup, logout, isLoading, error])
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

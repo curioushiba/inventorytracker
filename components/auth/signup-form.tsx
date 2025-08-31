@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/contexts/auth-context"
+import { validatePassword, validateEmail, validateInput } from "@/lib/errors/error-handler"
 import { Package, Sparkles, UserPlus } from "lucide-react"
 
 interface SignupFormProps {
@@ -27,10 +28,15 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
     setError("")
     setIsLoading(true)
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters")
-      setIsLoading(false)
-      return
+    // Validate inputs
+    const nameError = validateInput(name, "Name", 2, 50);
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (nameError || emailError || passwordError) {
+      setError(nameError || emailError || passwordError || "Invalid input");
+      setIsLoading(false);
+      return;
     }
 
     const result = await signup(email, password, name)

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/contexts/auth-context"
+import { validateEmail } from "@/lib/errors/error-handler"
 import { Package, Sparkles } from "lucide-react"
 
 interface LoginFormProps {
@@ -25,6 +26,14 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
     e.preventDefault()
     setError("")
     setIsLoading(true)
+
+    // Validate email format
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
+      setIsLoading(false);
+      return;
+    }
 
     const result = await login(email, password)
 

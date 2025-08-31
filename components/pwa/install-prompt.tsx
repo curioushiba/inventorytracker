@@ -40,9 +40,8 @@ export function InstallPrompt() {
     const dismissedTime = dismissed ? parseInt(dismissed) : 0
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault()
-      const promptEvent = e as BeforeInstallPromptEvent
+    const handlePWAInstallable = (e: CustomEvent) => {
+      const promptEvent = e.detail as BeforeInstallPromptEvent
       setDeferredPrompt(promptEvent)
       
       // Show prompt if not recently dismissed
@@ -51,18 +50,34 @@ export function InstallPrompt() {
       }
     }
 
-    const handleAppInstalled = () => {
+    const handlePWAInstalled = () => {
       setIsInstalled(true)
       setShowPrompt(false)
       setDeferredPrompt(null)
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
+    const handleAlreadyInstalled = () => {
+      setIsInstalled(true)
+    }
+
+    // Listen to custom events from pwa-init.js
+    window.addEventListener('pwa-installable', handlePWAInstallable as EventListener)
+    window.addEventListener('pwa-installed', handlePWAInstalled)
+    window.addEventListener('pwa-already-installed', handleAlreadyInstalled)
+
+    // Check if there's already a prompt stored
+    const existingPrompt = (window as any).getPWAPrompt?.()
+    if (existingPrompt) {
+      setDeferredPrompt(existingPrompt)
+      if (!dismissed || dismissedTime < oneDayAgo) {
+        setTimeout(() => setShowPrompt(true), 3000)
+      }
+    }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
+      window.removeEventListener('pwa-installable', handlePWAInstallable as EventListener)
+      window.removeEventListener('pwa-installed', handlePWAInstalled)
+      window.removeEventListener('pwa-already-installed', handleAlreadyInstalled)
     }
   }, [])
 

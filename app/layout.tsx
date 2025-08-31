@@ -65,8 +65,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${montserrat.variable}`}>
       <head>
-        <link rel="preload" href="/icons/icon-192x192.png" as="image" type="image/png" />
-        <link rel="preload" href="/icons/apple-touch-icon.png" as="image" type="image/png" />
+        <script src="/pwa-init.js" defer />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
       </head>
       <body className="font-sans antialiased">
         <AuthProvider>

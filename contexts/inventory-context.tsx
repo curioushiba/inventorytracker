@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, useMemo, useCallback } 
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/contexts/auth-context"
 import { useOffline } from "@/contexts/offline-context"
+import { getSyncManager } from "@/lib/offline/sync-manager"
 
 export interface InventoryItem {
   id: string
@@ -204,9 +205,10 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             }))
           )
 
-          // Trigger sync to update offline cache
+          // Use smart sync instead of immediate sync
           if (isSupported) {
-            await syncNow()
+            const syncManager = getSyncManager();
+            syncManager.smartSync();
           }
         }
       } catch (error) {

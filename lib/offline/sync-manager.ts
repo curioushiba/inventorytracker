@@ -16,9 +16,12 @@ export interface SyncStatus {
 
 class SyncManager {
   private syncInterval: NodeJS.Timeout | null = null;
+  private debounceTimeout: NodeJS.Timeout | null = null;
   private isSyncing = false;
   private syncListeners: Set<(status: SyncStatus) => void> = new Set();
   private syncHistory: any[] = [];
+  private lastSyncTime = 0;
+  private pendingSync = false;
 
   constructor() {
     // Listen for online/offline events
@@ -26,7 +29,7 @@ class SyncManager {
       window.addEventListener('online', () => this.handleOnline());
       window.addEventListener('offline', () => this.handleOffline());
       
-      // Start periodic sync if online
+      // Start periodic sync if online (reduced frequency)
       if (!isOffline()) {
         this.startPeriodicSync();
       }
@@ -49,12 +52,12 @@ class SyncManager {
 
   private startPeriodicSync() {
     this.stopPeriodicSync();
-    // Sync every 30 seconds when online
+    // Sync every 5 minutes when online (reduced from 30 seconds)
     this.syncInterval = setInterval(() => {
       if (!isOffline() && !this.isSyncing) {
-        this.syncNow();
+        this.debouncedSync();
       }
-    }, 30000);
+    }, 300000); // 5 minutes instead of 30 seconds
   }
 
   private stopPeriodicSync() {
@@ -62,6 +65,33 @@ class SyncManager {
       clearInterval(this.syncInterval);
       this.syncInterval = null;
     }
+    if (this.debounceTimeout) {
+      clearTimeout(this.debounceTimeout);
+      this.debounceTimeout = null;
+    }
+  }
+
+  // Debounced sync to prevent excessive syncing
+  private debouncedSync() {
+    const now = Date.now();
+    const timeSinceLastSync = now - this.lastSyncTime;
+    
+    // Don't sync if we just synced within the last 30 seconds
+    if (timeSinceLastSync < 30000) {
+      this.pendingSync = true;
+      return;
+    }
+    
+    if (this.debounceTimeout) {
+      clearTimeout(this.debounceTimeout);
+    }
+    
+    this.debounceTimeout = setTimeout(() => {
+      if (!this.isSyncing && !isOffline()) {
+        this.syncNow();
+        this.pendingSync = false;
+      }
+    }, 2000); // 2 second debounce
   }
 
   async syncNow(): Promise<void> {
@@ -70,6 +100,7 @@ class SyncManager {
     }
 
     this.isSyncing = true;
+    this.lastSyncTime = Date.now();
     this.notifyListeners({ status: 'syncing', message: 'Synchronizing data...' });
 
     try {
@@ -226,6 +257,20 @@ class SyncManager {
         type: 'SCHEDULE_SYNC'
       });
     }
+  }
+
+  // Smart sync method for user actions - uses debouncing
+  smartSync(): void {
+    this.debouncedSync();
+  }
+
+  // Force immediate sync (for critical actions)
+  async forceSyncNow(): Promise<void> {
+    if (this.debounceTimeout) {
+      clearTimeout(this.debounceTimeout);
+      this.debounceTimeout = null;
+    }
+    await this.syncNow();
   }
 
   // Clean up

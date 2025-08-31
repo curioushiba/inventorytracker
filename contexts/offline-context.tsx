@@ -58,8 +58,8 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = syncManager.onSyncStatusChange((status) => {
       setSyncStatus(status);
       
-      // Refresh cached data after successful sync
-      if (status.status === 'synced' && userId) {
+      // Only refresh cached data if there were actual changes
+      if (status.status === 'synced' && userId && (status.itemsCount || status.categoriesCount)) {
         loadCachedData();
       }
     });
@@ -133,8 +133,13 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       });
     }
     
-    await loadCachedData();
-  }, [isSupported, isOfflineState]);
+    // Update local state instead of reloading everything
+    setCachedItems(prev => [...prev.filter(i => i.id !== item.id), item]);
+    
+    // Use smart sync instead of immediate sync
+    const syncManager = getSyncManager();
+    syncManager.smartSync();
+  }, [isSupported, isOfflineState, userId]);
 
   const deleteOfflineItem = useCallback(async (id: string) => {
     if (!isSupported) return;
@@ -150,7 +155,12 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       });
     }
     
-    await loadCachedData();
+    // Update local state instead of reloading everything  
+    setCachedItems(prev => prev.filter(i => i.id !== id));
+    
+    // Use smart sync instead of immediate sync
+    const syncManager = getSyncManager();
+    syncManager.smartSync();
   }, [isSupported, isOfflineState]);
 
   const saveOfflineCategory = useCallback(async (category: Category) => {
@@ -167,7 +177,12 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       });
     }
     
-    await loadCachedData();
+    // Update local state instead of reloading everything
+    setCachedCategories(prev => [...prev.filter(c => c.id !== category.id), category]);
+    
+    // Use smart sync instead of immediate sync
+    const syncManager = getSyncManager();
+    syncManager.smartSync();
   }, [isSupported, isOfflineState]);
 
   const value: OfflineContextType = {

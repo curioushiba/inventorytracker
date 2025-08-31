@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
+    let initializationPromise: Promise<void> | null = null
 
     const initializeAuth = async () => {
       try {
@@ -78,7 +79,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false)
     })
 
-    initializeAuth()
+    // Only initialize once
+    if (!initializationPromise) {
+      initializationPromise = initializeAuth()
+    }
 
     return () => {
       mounted = false

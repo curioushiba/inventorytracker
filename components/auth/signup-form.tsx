@@ -51,7 +51,7 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
           </div>
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-3xl font-bold tracking-tight">Create Account</CardTitle>
+          <h1 className="text-3xl font-bold tracking-tight">Create Account</h1>
           <CardDescription className="text-base">Start managing your inventory with precision</CardDescription>
         </div>
       </CardHeader>
@@ -100,7 +100,7 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
           )}
           <Button 
             type="submit" 
-            className="w-full h-11 text-base font-medium" 
+            className="w-full min-h-[44px] h-12 text-base font-medium" 
             disabled={isLoading}
           >
             {isLoading ? (
@@ -121,7 +121,7 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
             Already have an account?{" "}
             <button 
               onClick={onToggleMode} 
-              className="text-primary hover:text-primary/80 font-semibold transition-colors"
+              className="text-primary hover:text-primary/80 font-semibold transition-colors min-h-[44px] py-2 px-1"
             >
               Sign in
             </button>

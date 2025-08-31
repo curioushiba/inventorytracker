@@ -44,7 +44,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
           </div>
         </div>
         <div className="space-y-2">
-          <CardTitle className="text-3xl font-bold tracking-tight">Welcome Back</CardTitle>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
           <CardDescription className="text-base">Sign in to your premium inventory management account</CardDescription>
         </div>
       </CardHeader>
@@ -81,7 +81,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
           )}
           <Button 
             type="submit" 
-            className="w-full h-11 text-base font-medium" 
+            className="w-full min-h-[44px] h-12 text-base font-medium" 
             disabled={isLoading}
           >
             {isLoading ? (
@@ -102,7 +102,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
             Don't have an account?{" "}
             <button 
               onClick={onToggleMode} 
-              className="text-primary hover:text-primary/80 font-semibold transition-colors"
+              className="text-primary hover:text-primary/80 font-semibold transition-colors min-h-[44px] py-2 px-1"
             >
               Create account
             </button>

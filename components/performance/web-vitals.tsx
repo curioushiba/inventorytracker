@@ -80,7 +80,7 @@ export function PerformanceMonitor() {
   
   return (
     <div className="fixed bottom-4 left-4 bg-black/90 text-white p-4 rounded-lg text-xs font-mono z-50 max-w-xs">
-      <h3 className="font-bold mb-2">Web Vitals</h3>
+      <h2 className="font-bold mb-2">Web Vitals</h2>
       {metrics.map(metric => (
         <div key={metric.name} className="flex justify-between items-center mb-1">
           <span>{metric.name}:</span>

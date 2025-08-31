@@ -38,7 +38,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
 
   useEffect(() => {
+    let mounted = true
+
+    const initializeAuth = async () => {
+      try {
+        // Get initial session first
+        const { data, error } = await supabase.auth.getSession()
+        
+        if (!mounted) return
+        
+        if (error) {
+          console.error("Error getting session:", error)
+          setError("Failed to get session")
+        } else if (data.session?.user) {
+          const userSession = createUserSession(data.session.user)
+          setUser(userSession)
+        }
+        
+        setIsLoading(false)
+      } catch (error) {
+        if (mounted) {
+          console.error("Auth initialization error:", error)
+          setError("Authentication failed")
+          setIsLoading(false)
+        }
+      }
+    }
+
     const { data: authListener } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      if (!mounted) return
+      
       setError(null)
       if (session?.user) {
         const userSession = createUserSession(session.user)
@@ -49,19 +78,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false)
     })
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data, error }: { data: any; error: any }) => {
-      if (error) {
-        console.error("Error getting session:", error)
-        setError("Failed to get session")
-      } else if (data.session?.user) {
-        const userSession = createUserSession(data.session.user)
-        setUser(userSession)
-      }
-      setIsLoading(false)
-    })
+    initializeAuth()
 
-    return () => authListener.subscription.unsubscribe()
+    return () => {
+      mounted = false
+      authListener.subscription.unsubscribe()
+    }
   }, [])
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {

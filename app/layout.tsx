@@ -64,6 +64,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${montserrat.variable}`}>
+      <head>
+        <link rel="preload" href="/icons/icon-192x192.png" as="image" type="image/png" />
+        <link rel="preload" href="/icons/apple-touch-icon.png" as="image" type="image/png" />
+      </head>
       <body className="font-sans antialiased">
         <AuthProvider>
           <PerformanceWrapper>

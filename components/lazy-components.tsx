@@ -16,7 +16,7 @@ export const LazyInventoryDashboard = dynamic(
   () => import('@/components/dashboard/inventory-dashboard').then(mod => ({ default: mod.InventoryDashboard })),
   {
     loading: () => <LoadingSpinner />,
-    ssr: false // Disable SSR for performance-critical components
+    ssr: true // Enable SSR for better performance
   }
 )
 

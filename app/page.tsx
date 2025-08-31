@@ -42,7 +42,7 @@ function MainApp() {
         {/* Mobile-optimized header */}
         <header className="sticky top-0 z-50 bg-background/95 border-b border-border/50 layout-stable">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+            <nav className="flex justify-between items-center h-16" role="navigation" aria-label="Main navigation">
               <div className="flex items-center space-x-3">
                 <div className="bg-gradient-to-br from-primary to-secondary p-2.5 rounded-xl shadow-premium">
                   <Package className="h-6 w-6 text-primary-foreground" />
@@ -57,14 +57,14 @@ function MainApp() {
                 <Button
                   onClick={logout}
                   variant="outline"
-                  size="sm"
-                  className="flex items-center space-x-2"
+                  size="default"
+                  className="flex items-center space-x-2 min-h-[44px]"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Sign Out</span>
                 </Button>
               </div>
-            </div>
+            </nav>
           </div>
         </header>
         
@@ -92,6 +92,7 @@ function AppContent() {
           <div className="bg-gradient-to-br from-primary to-secondary p-4 rounded-2xl shadow-premium-lg mb-6 inline-block">
             <Package className="h-12 w-12 text-primary-foreground animate-pulse" />
           </div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Inventory Tracker</h1>
           <p className="text-muted-foreground font-medium">Loading your inventory...</p>
         </div>
       </div>

@@ -1,11 +1,24 @@
 import { getOfflineDB, isOffline } from './db';
 import { supabase } from '@/lib/supabase';
 import { Item, Category } from '@/types/inventory';
+import { conflictResolver } from './conflict-resolver';
+import { patternAnalyzer } from './user-pattern-analyzer';
+import { predictiveCache } from './predictive-cache';
+import { storageOptimizer } from './storage-optimizer';
+
+export interface SyncStatus {
+  status: 'online' | 'offline' | 'syncing' | 'synced' | 'error';
+  message: string;
+  itemsCount?: number;
+  categoriesCount?: number;
+  conflicts?: number;
+}
 
 class SyncManager {
   private syncInterval: NodeJS.Timeout | null = null;
   private isSyncing = false;
   private syncListeners: Set<(status: SyncStatus) => void> = new Set();
+  private syncHistory: any[] = [];
 
   constructor() {
     // Listen for online/offline events

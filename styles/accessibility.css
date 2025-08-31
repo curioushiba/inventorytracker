@@ -1,0 +1,266 @@
+/* WCAG 2.1 AA Compliance Styles */
+
+/* High Contrast Mode */
+.high-contrast {
+  --color-contrast-multiplier: 1.5;
+}
+
+.high-contrast * {
+  border-color: currentColor !important;
+}
+
+.high-contrast button,
+.high-contrast a,
+.high-contrast input,
+.high-contrast select,
+.high-contrast textarea {
+  border: 2px solid currentColor !important;
+}
+
+.high-contrast .text-gray-500 {
+  color: #374151 !important; /* Darker gray for better contrast */
+}
+
+.high-contrast .bg-gray-100 {
+  background-color: #e5e7eb !important;
+}
+
+.high-contrast .dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Reduced Motion */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduced-motion .animate-pulse,
+.reduced-motion .animate-spin,
+.reduced-motion .animate-bounce {
+  animation: none !important;
+}
+
+/* Large Text Mode */
+.large-text {
+  font-size: 120%;
+}
+
+.large-text .text-xs {
+  font-size: 0.875rem !important; /* 14px */
+}
+
+.large-text .text-sm {
+  font-size: 1rem !important; /* 16px */
+}
+
+.large-text .text-base {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+.large-text .text-lg {
+  font-size: 1.25rem !important; /* 20px */
+}
+
+.large-text .text-xl {
+  font-size: 1.5rem !important; /* 24px */
+}
+
+.large-text .text-2xl {
+  font-size: 1.875rem !important; /* 30px */
+}
+
+/* Focus Indicators */
+.focus-indicators *:focus {
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+.focus-indicators button:focus-visible,
+.focus-indicators a:focus-visible,
+.focus-indicators input:focus-visible,
+.focus-indicators select:focus-visible,
+.focus-indicators textarea:focus-visible,
+.focus-indicators [tabindex]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Skip Links */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 9999;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.not-sr-only {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+.focus-within\:not-sr-only:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Minimum Touch Target Size (44x44px for WCAG 2.1 AA) */
+.touch-manipulation {
+  touch-action: manipulation;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Color Contrast Improvements */
+.text-contrast-auto {
+  color: var(--text-color, inherit);
+}
+
+/* Dark mode with high contrast support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-gray-50: #fafafa;
+    --color-gray-900: #0a0a0a;
+  }
+  
+  .dark {
+    --color-gray-50: #0a0a0a;
+    --color-gray-900: #fafafa;
+  }
+}
+
+/* Keyboard Navigation Indicators */
+[data-keyboard-nav="true"] *:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ARIA Live Regions */
+[aria-live="polite"] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+[aria-live="assertive"] {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Loading States */
+[aria-busy="true"] {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+[aria-busy="true"]::after {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-left: 0.5em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled States */
+[aria-disabled="true"],
+[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Error States */
+[aria-invalid="true"] {
+  border-color: #ef4444 !important;
+}
+
+[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.5) !important;
+}
+
+/* Selected States */
+[aria-selected="true"] {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+}
+
+/* Expanded/Collapsed States */
+[aria-expanded="false"] > .expandable-content {
+  display: none;
+}
+
+[aria-expanded="true"] > .expandable-content {
+  display: block;
+}
+
+/* Print Styles for Accessibility */
+@media print {
+  .no-print,
+  .skip-link,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+  
+  abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
+}

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/contexts/auth-context"
 import { useOffline } from "@/contexts/offline-context"
@@ -439,17 +439,17 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     return result
   }
 
-  const getLowStockItems = () => {
+  const getLowStockItems = useMemo(() => {
     return items.filter((item) => item.quantity <= item.minQuantity)
-  }
+  }, [items])
 
-  const getTotalValue = () => {
+  const getTotalValue = useMemo(() => {
     return 0
-  }
+  }, [])
 
-  const getItemsByCategory = (category: string) => {
+  const getItemsByCategory = useCallback((category: string) => {
     return items.filter((item) => item.category === category)
-  }
+  }, [items])
 
   const addCategory = async (category: string): Promise<{ success: boolean; error?: string }> => {
     if (!user) {
@@ -589,13 +589,13 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const getCategoryStats = () => {
+  const getCategoryStats = useMemo(() => {
     return categories.map((category) => {
       const categoryItems = getItemsByCategory(category)
       const count = categoryItems.reduce((sum, item) => sum + item.quantity, 0)
       return { category, count, value: 0 }
     })
-  }
+  }, [categories, getItemsByCategory])
 
   return (
     <InventoryContext.Provider
@@ -609,13 +609,13 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         updateItem,
         deleteItem,
         updateQuantity,
-        getLowStockItems,
-        getTotalValue,
+        getLowStockItems: () => getLowStockItems,
+        getTotalValue: () => getTotalValue,
         getItemsByCategory,
         addCategory,
         deleteCategory,
         updateCategory,
-        getCategoryStats,
+        getCategoryStats: () => getCategoryStats,
       }}
     >
       {children}

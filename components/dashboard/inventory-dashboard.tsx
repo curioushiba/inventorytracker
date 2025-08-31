@@ -78,12 +78,12 @@ export function InventoryDashboard() {
         </div>
       </div>
 
-      {/* Stats Overview Cards */}
+      {/* Stats Overview Cards - Mobile Optimized */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="glass hover-lift">
+        <Card className="bg-card border shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-primary to-primary/80 p-3 rounded-xl">
+              <div className="bg-primary p-3 rounded-xl">
                 <Package className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
@@ -96,10 +96,10 @@ export function InventoryDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="glass hover-lift">
+        <Card className="bg-card border shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-secondary to-secondary/80 p-3 rounded-xl">
+              <div className="bg-secondary p-3 rounded-xl">
                 <TrendingUp className="h-6 w-6 text-secondary-foreground" />
               </div>
               <div>
@@ -112,11 +112,11 @@ export function InventoryDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="glass hover-lift">
+        <Card className="bg-card border shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-accent-foreground to-accent-foreground/80 p-3 rounded-xl">
-                <Activity className="h-6 w-6 text-accent" />
+              <div className="bg-muted p-3 rounded-xl">
+                <Activity className="h-6 w-6 text-muted-foreground" />
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Recent Activity</p>
@@ -129,8 +129,8 @@ export function InventoryDashboard() {
         </Card>
       </div>
 
-      {/* Main Items List - Premium Design */}
-      <Card className="glass shadow-premium-lg">
+      {/* Main Items List - Mobile Optimized */}
+      <Card className="bg-card border shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-semibold flex items-center space-x-2">
             <Package className="h-5 w-5 text-primary" />
@@ -138,7 +138,7 @@ export function InventoryDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto optimized-scroll">
             {isLoading ? (
               <div className="p-12 text-center">
                 <div className="flex items-center justify-center space-x-2 mb-4">
@@ -148,43 +148,43 @@ export function InventoryDashboard() {
               </div>
             ) : items.length === 0 ? (
               <div className="p-12 text-center">
-                <div className="bg-gradient-to-br from-muted to-muted/50 p-6 rounded-2xl inline-block mb-4">
+                <div className="bg-muted p-6 rounded-2xl inline-block mb-4">
                   <Package className="h-16 w-16 text-muted-foreground/50" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">No items yet</h3>
                 <p className="text-muted-foreground mb-4">Start building your inventory by adding your first item</p>
-                <Button onClick={() => setShowAddForm(true)} className="flex items-center space-x-2">
+                <Button onClick={() => setShowAddForm(true)} className="flex items-center space-x-2 touch-manipulation">
                   <PlusCircle className="h-4 w-4" />
                   <span>Add First Item</span>
                 </Button>
               </div>
             ) : (
               <div className="divide-y divide-border/50">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-6 hover:bg-accent/30 transition-colors">
-                    <div className="flex-1">
+                {items.slice(0, 50).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-6 active:bg-accent/20 touch-manipulation">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-semibold text-foreground text-lg">{item.name}</h3>
-                        <Badge variant="secondary" className="text-xs font-medium">
+                        <h3 className="font-semibold text-foreground text-lg truncate">{item.name}</h3>
+                        <Badge variant="secondary" className="text-xs font-medium shrink-0">
                           {item.category || "Uncategorized"}
                         </Badge>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setEditingItem(item.id)}
-                          className="h-8 w-8 p-0 hover:bg-accent/50"
+                          className="h-10 w-10 p-0 active:bg-accent/50 touch-manipulation shrink-0"
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
                       </div>
                       {item.description && (
-                        <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{item.description}</p>
                       )}
                       {item.location && (
-                        <p className="text-xs text-muted-foreground mt-1">📍 {item.location}</p>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">📍 {item.location}</p>
                       )}
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <div className="text-2xl font-bold text-foreground">{item.quantity}</div>
                       <div className="text-xs text-muted-foreground font-medium">units</div>
                       {item.minQuantity > 0 && item.quantity <= item.minQuantity && (
@@ -193,14 +193,19 @@ export function InventoryDashboard() {
                     </div>
                   </div>
                 ))}
+                {items.length > 50 && (
+                  <div className="p-4 text-center border-t">
+                    <p className="text-sm text-muted-foreground">Showing first 50 items. Use search to find more.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Recent Activity Section - Premium Design */}
-      <Card className="glass shadow-premium-lg">
+      {/* Recent Activity Section - Mobile Optimized */}
+      <Card className="bg-card border shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl font-semibold flex items-center space-x-2">
             <Activity className="h-5 w-5 text-primary" />
@@ -208,7 +213,7 @@ export function InventoryDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto optimized-scroll">
             {isLoading ? (
               <div className="p-8 text-center">
                 <div className="flex items-center justify-center space-x-2">
@@ -218,7 +223,7 @@ export function InventoryDashboard() {
               </div>
             ) : activities.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="bg-gradient-to-br from-muted to-muted/50 p-4 rounded-xl inline-block mb-3">
+                <div className="bg-muted p-4 rounded-xl inline-block mb-3">
                   <Activity className="h-8 w-8 text-muted-foreground/50" />
                 </div>
                 <p className="text-muted-foreground">No recent activity</p>
@@ -226,10 +231,10 @@ export function InventoryDashboard() {
             ) : (
               <div className="divide-y divide-border/50">
                 {activities.slice(0, 10).map((activity) => (
-                  <div key={activity.id} className="p-4 hover:bg-accent/30 transition-colors">
+                  <div key={activity.id} className="p-4 active:bg-accent/20 transition-colors touch-manipulation">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-foreground">{activity.action}</span>
-                      <div className="flex items-center space-x-3">
+                      <span className="font-medium text-foreground truncate mr-2">{activity.action}</span>
+                      <div className="flex items-center space-x-3 shrink-0">
                         {typeof activity.quantityChange === "number" && activity.quantityChange !== 0 && (
                           <span
                             className={`text-sm font-semibold px-2 py-1 rounded-md ${
@@ -246,7 +251,7 @@ export function InventoryDashboard() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground leading-relaxed">{activity.details}</div>
+                    <div className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{activity.details}</div>
                   </div>
                 ))}
               </div>

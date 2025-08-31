@@ -36,9 +36,9 @@ function MainApp() {
 
   return (
     <InventoryProvider>
-      <div className="min-h-screen bg-background">
-        {/* Premium header with glassmorphism */}
-        <header className="sticky top-0 z-50 glass border-b border-border/50 backdrop-blur-md">
+      <div className="min-h-screen bg-background mobile-optimized">
+        {/* Mobile-optimized header */}
+        <header className="sticky top-0 z-50 bg-background/95 border-b border-border/50 layout-stable">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">

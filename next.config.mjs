@@ -77,6 +77,9 @@ const nextConfig = {
   // Performance optimizations
   compress: true,
   poweredByHeader: false,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   // Bundle analysis and optimization
   experimental: {
     optimizePackageImports: [
@@ -103,7 +106,7 @@ const nextConfig = {
       'date-fns',
       'recharts'
     ],
-    webVitalsAttribution: ['CLS', 'LCP'],
+    webVitalsAttribution: ['CLS', 'LCP', 'INP'],
     turbo: {
       rules: {
         '*.svg': {

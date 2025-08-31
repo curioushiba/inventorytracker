@@ -13,7 +13,9 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-montserrat",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
+  fallback: ["Arial", "sans-serif"],
+  preload: true,
 })
 
 export const metadata: Metadata = {
@@ -58,15 +60,15 @@ export default function RootLayout({
     <html lang="en" className={`${montserrat.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>
-          <InventoryProvider>
-            <PerformanceWrapper>
-              <OfflineProvider>
+          <PerformanceWrapper>
+            <OfflineProvider>
+              <InventoryProvider>
                 <NotificationProvider>
                   <PWAProvider>{children}</PWAProvider>
                 </NotificationProvider>
-              </OfflineProvider>
-            </PerformanceWrapper>
-          </InventoryProvider>
+              </InventoryProvider>
+            </OfflineProvider>
+          </PerformanceWrapper>
         </AuthProvider>
       </body>
     </html>

@@ -163,10 +163,16 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-image:
-      radial-gradient(circle at 20% 80%, oklch(0.95 0.03 142.5 / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, oklch(0.95 0.03 142.5 / 0.05) 0%, transparent 50%);
-    background-attachment: fixed;
+  }
+  
+  /* Desktop-only background effects */
+  @media (hover: hover) and (pointer: fine) {
+    body {
+      background-image:
+        radial-gradient(circle at 20% 80%, oklch(0.95 0.03 142.5 / 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, oklch(0.95 0.03 142.5 / 0.05) 0%, transparent 50%);
+      background-attachment: fixed;
+    }
   }
 
   /* Typography hierarchy using Montserrat */
@@ -197,10 +203,23 @@
   ::-webkit-scrollbar-thumb:hover { background: oklch(0.7 0.08 142.5); }
 }
 
-/* Glassmorphism utility classes */
+/* Mobile-optimized glass effects */
 @layer utilities {
-  .glass { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
-  .glass-strong { background: oklch(1 0 0 / 0.95); backdrop-filter: blur(20px); border: 1px solid oklch(1 0 0 / 0.3); }
+  .glass { 
+    background: var(--glass-bg); 
+    border: 1px solid var(--glass-border); 
+  }
+  
+  /* Only apply expensive effects on desktop */
+  @media (hover: hover) and (pointer: fine) {
+    .glass { backdrop-filter: blur(12px); }
+    .glass-strong { backdrop-filter: blur(20px); }
+  }
+  
+  .glass-strong { 
+    background: oklch(1 0 0 / 0.95); 
+    border: 1px solid oklch(1 0 0 / 0.3); 
+  }
   .gradient-primary { background: var(--gradient-primary); }
   .gradient-card { background: var(--gradient-card); }
   .gradient-glass { background: var(--gradient-glass); }
@@ -210,9 +229,11 @@
   .shadow-premium-lg { box-shadow: var(--shadow-xl), 0 0 0 1px oklch(1 0 0 / 0.05); }
   .shadow-premium-xl { box-shadow: var(--shadow-2xl), 0 0 0 1px oklch(1 0 0 / 0.05); }
 
-  /* Hover effects */
-  .hover-lift { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-  .hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+  /* Hover effects - desktop only */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+  }
 
   /* Focus styles */
   .focus-ring { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2; }
@@ -223,6 +244,8 @@
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .touch-pan-y {
@@ -296,8 +319,21 @@
   .gpu-accelerate {
     transform: translateZ(0);
     backface-visibility: hidden;
-    perspective: 1000;
+    perspective: 1000px;
     will-change: transform, opacity;
+  }
+
+  /* Fast mobile transitions */
+  .mobile-fast-transition {
+    transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+  }
+
+  /* Reduce motion for performance */
+  @media (prefers-reduced-motion: reduce) {
+    .hover-lift,
+    .mobile-fast-transition {
+      transition: none;
+    }
   }
 
   /* Remove input zoom on iOS */
@@ -320,5 +356,42 @@
     overflow: hidden;
     width: 100%;
     height: 100%;
+  }
+
+  /* Mobile performance optimizations */
+  .mobile-optimized {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeSpeed;
+    transform: translateZ(0);
+  }
+
+  /* Reduce layout thrashing */
+  .layout-stable {
+    contain: layout style;
+  }
+
+  /* Efficient scrolling for mobile */
+  .mobile-scroll {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: auto;
+  }
+
+  /* Fast tap response */
+  @media (hover: none) and (pointer: coarse) {
+    button, 
+    [role="button"],
+    .touch-manipulation {
+      cursor: pointer;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+      transition: background-color 0.1s ease;
+    }
+    
+    button:active,
+    [role="button"]:active,
+    .touch-manipulation:active {
+      transform: scale(0.98);
+    }
   }
 }

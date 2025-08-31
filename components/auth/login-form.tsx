@@ -22,7 +22,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
@@ -42,7 +42,7 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
     }
 
     setIsLoading(false)
-  }
+  }, [email, password, login])
 
   return (
     <Card className="w-full max-w-md mx-auto glass shadow-premium-xl">
@@ -68,7 +68,9 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-11 bg-background/50 backdrop-blur-sm border-border/60 focus:border-primary/50 transition-colors"
+              disabled={isLoading}
+              autoComplete="email"
+              className="h-11 bg-background border-border/60 focus:border-primary/50"
             />
           </div>
           <div className="space-y-2">
@@ -80,7 +82,9 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-11 bg-background/50 backdrop-blur-sm border-border/60 focus:border-primary/50 transition-colors"
+              disabled={isLoading}
+              autoComplete="current-password"
+              className="h-11 bg-background border-border/60 focus:border-primary/50"
             />
           </div>
           {error && (

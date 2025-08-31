@@ -2,6 +2,19 @@
 (function() {
   'use strict';
   
+  // Register the simple service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw-simple.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+  
   // Track if the app is installable
   let deferredPrompt = null;
   

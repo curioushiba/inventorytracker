@@ -23,7 +23,7 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { signup } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = React.useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
@@ -46,7 +46,7 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
     }
 
     setIsLoading(false)
-  }
+  }, [email, password, name, signup])
 
   return (
     <Card className="w-full max-w-md mx-auto glass shadow-premium-xl">
@@ -72,7 +72,9 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="h-11 bg-background/50 backdrop-blur-sm border-border/60 focus:border-primary/50 transition-colors"
+              disabled={isLoading}
+              autoComplete="name"
+              className="h-11 bg-background border-border/60 focus:border-primary/50"
             />
           </div>
           <div className="space-y-2">
@@ -84,7 +86,9 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-11 bg-background/50 backdrop-blur-sm border-border/60 focus:border-primary/50 transition-colors"
+              disabled={isLoading}
+              autoComplete="email"
+              className="h-11 bg-background border-border/60 focus:border-primary/50"
             />
           </div>
           <div className="space-y-2">
@@ -96,7 +100,9 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-11 bg-background/50 backdrop-blur-sm border-border/60 focus:border-primary/50 transition-colors"
+              disabled={isLoading}
+              autoComplete="new-password"
+              className="h-11 bg-background border-border/60 focus:border-primary/50"
             />
           </div>
           {error && (

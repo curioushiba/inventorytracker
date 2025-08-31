@@ -30,6 +30,9 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return;
+
     // Check if IndexedDB is supported
     setIsSupported(isIndexedDBSupported());
 
@@ -61,17 +64,21 @@ export function OfflineProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Try to get user ID from localStorage (if available from auth)
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      setUserId(storedUserId);
-      syncManager.initializeOfflineData();
-      loadCachedData();
+    // Try to get user ID from localStorage (if available from auth) - only in browser
+    if (typeof window !== 'undefined') {
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        setUserId(storedUserId);
+        syncManager.initializeOfflineData();
+        loadCachedData();
+      }
     }
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      }
       unsubscribe();
     };
   }, [userId]);

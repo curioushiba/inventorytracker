@@ -264,11 +264,17 @@ export function getOfflineDB(): OfflineDatabase {
 
 // Helper function to check if we're offline
 export function isOffline(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false; // Server-side or no browser APIs
+  }
   return !navigator.onLine;
 }
 
 // Helper function to check if IndexedDB is supported
 export function isIndexedDBSupported(): boolean {
+  if (typeof window === 'undefined') {
+    return false; // Server-side rendering
+  }
   try {
     return 'indexedDB' in window && indexedDB !== null;
   } catch (e) {

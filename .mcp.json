@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-playwright"],
+      "env": {
+        "PLAYWRIGHT_HEADLESS": "true"
+      }
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-shadcn-ui"]
+    },
+    "ref": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-ref"]
+    },
+    "taskmaster": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-taskmaster"]
+    }
+  }
+}

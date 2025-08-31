@@ -189,6 +189,8 @@ class SyncManager {
 
   // Schedule background sync
   async scheduleBackgroundSync() {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
@@ -204,6 +206,8 @@ class SyncManager {
 
   // Trigger background sync from service worker
   async triggerBackgroundSync() {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
         type: 'SCHEDULE_SYNC'

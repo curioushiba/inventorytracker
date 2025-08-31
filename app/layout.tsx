@@ -27,6 +27,12 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "Inventory Tracker",
+    startupImage: [
+      {
+        url: "/icons/apple-touch-icon.png",
+        media: "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
+      },
+    ],
   },
   formatDetection: {
     telephone: false,

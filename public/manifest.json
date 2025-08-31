@@ -2,7 +2,7 @@
   "name": "Inventory Tracker - Professional Inventory Management",
   "short_name": "Inventory Tracker",
   "description": "A professional inventory management system with real-time tracking, low stock alerts, and comprehensive activity logging.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "any",
   "theme_color": "#42a855",
@@ -94,7 +94,7 @@
       "name": "Add New Item",
       "short_name": "Add Item",
       "description": "Quickly add a new inventory item",
-      "url": "/dashboard?action=add-item",
+      "url": "/?action=add-item",
       "icons": [
         {
           "src": "/icons/add-item.png",
@@ -107,7 +107,7 @@
       "name": "Low Stock Items",
       "short_name": "Low Stock",
       "description": "View items with low stock",
-      "url": "/dashboard?filter=low-stock",
+      "url": "/?filter=low-stock",
       "icons": [
         {
           "src": "/icons/low-stock.png",
